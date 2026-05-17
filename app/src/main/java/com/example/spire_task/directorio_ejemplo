@@ -1,0 +1,91 @@
+com.example.spire_task/
+│
+├── SpiroApplication.kt               # Clase base del proyecto (lleva la anotación @HiltAndroidApp)
+├── MainActivity.kt                  # Actividad única donde se monta el NavHost (Contenedor de pantallas)
+│
+├── core/                             # 🏢 EL NÚCLEO GLOBAL (Persistencia y herramientas unificadas)
+│   ├── data/
+│   │   ├── local/
+│   │   │   ├── dao/                  # 🔑 Todos los DAOs de tus compañeros agrupados aquí
+│   │   │   │   ├── ProfileDao.kt     # Consultas para el perfil/progreso del usuario
+│   │   │   │   ├── TaskDao.kt        # Consultas para el tablero Kanban de Jorcaef
+│   │   │   │   └── PetDao.kt         # Consultas para la mascota de Medalith
+│   │   │   ├── database/
+│   │   │   │   └── SpiroDatabase.kt  # 🗄️ La ÚNICA base de datos de Room (agrega todas las entidades)
+│   │   │   └── entities/             # 📌 Las tablas físicas del disco (Mapeo del diagrama de base de datos)
+│   │   │       ├── ProfileEntity.kt  # tblPerfiles (idUser como String, nivel, monedas, xp)
+│   │   │       ├── BoardEntity.kt    # tblTableros
+│   │   │       ├── TaskEntity.kt     # tblTareas (con el campo isSynced para la nube)
+│   │   │       ├── SubTaskEntity.kt  # tblSubTareas
+│   │   │       └── UserPetEntity.kt  # tblUserMascota
+│   │   └── remote/
+│   │       └── firebase/
+│   │           └── FirestoreManager.kt # Lógica global de sincronización a la nube (Firestore NoSQL)
+│   ├── di/                           # 🧪 Inyección de Dependencias Global (Hilt)
+│   │   ├── DatabaseModule.kt         # Provee Room y los DAOs a toda la aplicación
+│   │   ├── NetworkModule.kt          # Provee las instancias oficiales de Firebase (Auth y Firestore)
+│   │   └── AuthModule.kt             # Provee tu repositorio de autenticación a los demás módulos
+│   └── navigation/
+│       ├── AppNavGraph.kt            # Grafo y lógica de navegación entre todas las pantallas
+│       └── Screen.kt                 # Estructura limpia con las rutas (P-01, P-02, P-05, etc.)
+│
+└── feature/                          # 🚀 LAS FUNCIONALIDADES (Tu módulo y los de tus compañeros)
+    │
+    ├── auth/                         # 🛠️ TU MÓDULO: Autenticación (Leonardo)
+    │   ├── data/
+    │   │   └── repository/
+    │   │       └── AuthRepositoryImpl.kt # Implementación real conectada a Firebase Auth y modo Invitado
+    │   ├── domain/
+    │   │   ├── model/
+    │   │   │   └── User.kt           # 📦 El modelo momentáneo en RAM (ID, correo, tipo de proveedor)
+    │   │   └── repository/
+    │   │       └── AuthRepository.kt # Interfaz/Contrato con las funciones de Login y Registro
+    │   └── ui/
+    │       ├── login/
+    │       │   ├── LoginScreen.kt    # Pantalla P-01 (Interfaz gráfica en Compose)
+    │       │   └── LoginViewModel.kt # Cerebro de P-01 (Maneja estados: Cargando, Éxito, Error)
+    │       ├── register/
+    │       │   ├── RegisterScreen.kt # Pantalla P-02
+    │       │   └── RegisterViewModel.kt
+    │       └── onboarding/
+    │           ├── OnboardingScreen.kt # Pantalla P-03 (Elegir primera mascota)
+    │           └── OnboardingViewModel.kt
+    │
+    ├── kanban/                       # 📋 MÓDULO: Gestión de Tareas (Jorcaef)
+    │   ├── domain/
+    │   │   └── repository/
+    │   │       └── TaskRepository.kt # Interfaz para controlar flujos de tareas
+    │   └── ui/
+    │       ├── dashboard/
+    │       │   ├── DashboardScreen.kt # Pantalla P-05 (Tablero Kanban principal)
+    │       │   └── DashboardViewModel.kt
+    │       └── task_detail/
+    │           ├── TaskDetailScreen.kt # Pantalla P-06
+    │           └── TaskDetailViewModel.kt
+    │
+    ├── gamification/                 # 🎮 MÓDULO: Sistema de Progreso y Mascota (Medalith)
+    │   ├── domain/
+    │   │   └── repository/
+    │   │       └── GamificationRepository.kt # Interfaz para otorgar experiencia, subir de nivel, etc.
+    │   └── ui/
+    │       ├── pet_profile/
+    │       │   ├── PetProfileScreen.kt # Pantalla P-12 (Ver estadísticas de la mascota)
+    │       │   └── PetProfileViewModel.kt
+    │       └── streaks/
+    │           ├── StreaksScreen.kt   # Pantalla P-14 (Control de días seguidos de productividad)
+    │           └── StreaksViewModel.kt
+    │
+    └── store/                        # 🛍️ MÓDULO: Tienda y Ajustes de Cuenta (Angelo)
+        ├── domain/
+        │   └── repository/
+        │       └── StoreRepository.kt # Interfaz para transacciones y compras de cosméticos
+        └── ui/
+            ├── store_catalog/
+            │   ├── StoreScreen.kt     # Pantalla P-17 (Catálogo de artículos para la mascota)
+            │   └── StoreViewModel.kt
+            ├── profile/
+            │   ├── UserProfileScreen.kt # Pantalla P-21 (Ver perfil público del estudiante)
+            │   └── UserProfileViewModel.kt
+            └── settings/
+                ├── SettingsScreen.kt   # Pantalla P-22 (Configuraciones generales de la app)
+                └── SettingsViewModel.kt
