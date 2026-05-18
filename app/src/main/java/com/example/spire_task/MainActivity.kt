@@ -35,7 +35,7 @@ class MainActivity : ComponentActivity() {
                     val scope = rememberCoroutineScope()
 
                     val authRepository = remember { AuthRepository(this@MainActivity) }
-                    val loginViewModel = remember { LoginViewModel(authRepository) }
+                    val loginViewModel = remember { LoginViewModel(authRepository, this@MainActivity) }
                     val localRegisterViewModel = remember { LocalRegisterViewModel(authRepository) }
 
                     // Verificar sesión guardada al iniciar

@@ -8,6 +8,8 @@ import com.example.spire_task.data.local.entities.ProfileEntity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.UUID
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount
+import com.google.firebase.auth.FirebaseAuth
 
 class AuthRepository(private val context: Context) {
 
@@ -142,6 +144,39 @@ class AuthRepository(private val context: Context) {
                 _currentUserName = userName
                 sessionManager.saveSession(userId, userName)
                 Result.success(profile)
+
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        }
+    }
+    suspend fun loginWithGoogleAccount(account: GoogleSignInAccount): Result<ProfileEntity> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val firebaseUser = FirebaseAuth.getInstance().currentUser
+                val userId = firebaseUser?.uid ?: account.id ?: return@withContext Result.failure(Exception("No se pudo obtener el ID"))
+                val userName = account.displayName ?: account.email?.split("@")?.first() ?: "Usuario"
+                val email = account.email ?: ""
+
+                // Buscar si ya existe este usuario de Google
+                var existing = profileDao.obtenerPorId(userId)
+
+                if (existing == null) {
+                    // Usuario de Google nuevo, crear perfil
+                    val profile = ProfileEntity(
+                        idUser = userId,
+                        userName = userName,
+                        email = email,
+                        authProvider = "google"
+                    )
+                    profileDao.insertar(profile)
+                    existing = profile
+                }
+
+                _currentUserId = existing.idUser
+                _currentUserName = existing.userName
+                sessionManager.saveSession(existing.idUser, existing.userName)
+                Result.success(existing)
 
             } catch (e: Exception) {
                 Result.failure(e)

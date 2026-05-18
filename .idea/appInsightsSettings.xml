@@ -8,10 +8,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="com.example.spire_task" />
+                  <option name="mobileSdkAppId" value="1:161861076785:android:489243ad2a63e11c951210" />
+                  <option name="projectId" value="spiroapp-ad2f1" />
+                  <option name="projectNumber" value="161861076785" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />

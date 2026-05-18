@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "161861076785",
+    "project_id": "spiroapp-ad2f1",
+    "storage_bucket": "spiroapp-ad2f1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:161861076785:android:489243ad2a63e11c951210",
+        "android_client_info": {
+          "package_name": "com.example.spire_task"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCNrno866y2he_oEWsiY1Z7ZuHgjUH0FLw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

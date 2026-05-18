@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     id("com.google.devtools.ksp") version "2.2.10-2.0.2"
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -63,4 +64,13 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.4")
 
     implementation("androidx.datastore:datastore-preferences:1.1.0")
+
+    // Firebase BoM (Bill of Materials) - maneja las versiones automáticamente
+    implementation(platform("com.google.firebase:firebase-bom:34.13.0"))
+
+    // Firebase Authentication
+    implementation("com.google.firebase:firebase-auth")
+
+    // Google Play Services Auth (para Google Sign-In)
+    implementation("com.google.android.gms:play-services-auth:21.3.0")
 }
