@@ -64,7 +64,13 @@ class MainActivity : ComponentActivity() {
                                 monedas = 0,
                                 racha = 0,
                                 onLogout = {
-                                    authRepository.logout()
+                                    if (currentAuthProvider == "google") {
+                                        scope.launch {
+                                            authRepository.logoutWithGoogle()
+                                        }
+                                    } else {
+                                        authRepository.logout()
+                                    }
                                     currentScreen = "login"
                                     currentUserName = ""
                                     currentUserEmail = ""

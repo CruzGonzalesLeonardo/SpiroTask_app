@@ -50,8 +50,19 @@ class GoogleSignInManager(private val context: Context) {
 
     fun getCurrentFirebaseUser() = auth.currentUser
 
-    fun signOut() {
+    // ✅ ACTUALIZAR ESTA FUNCIÓN - Cierra sesión completa
+    suspend fun signOut() {
+        // Cierra sesión en Firebase
         auth.signOut()
-        googleSignInClient.signOut()
+        // Cierra sesión en Google (elimina la cuenta seleccionada)
+        googleSignInClient.signOut().await()
+        // También puedes usar revokeAccess() para revocar permisos (más agresivo)
+        // googleSignInClient.revokeAccess().await()
+    }
+
+    // Opcional: Revocar acceso (elimina los permisos otorgados)
+    suspend fun revokeAccess() {
+        googleSignInClient.revokeAccess().await()
+        auth.signOut()
     }
 }

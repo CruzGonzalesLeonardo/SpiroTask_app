@@ -5,6 +5,7 @@ import com.example.spire_task.data.local.SessionManager
 import com.example.spire_task.data.local.dao.ProfileDao
 import com.example.spire_task.data.local.database.SpiroDatabase
 import com.example.spire_task.data.local.entities.ProfileEntity
+import com.example.spire_task.data.remote.auth.GoogleSignInManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.UUID
@@ -114,6 +115,14 @@ class AuthRepository(private val context: Context) {
 
     // Cerrar sesión
     fun logout() {
+        _currentUserId = null
+        _currentUserName = null
+        sessionManager.clearSession()
+    }
+
+    suspend fun logoutWithGoogle() {
+        val googleManager = GoogleSignInManager(context)
+        googleManager.signOut()
         _currentUserId = null
         _currentUserName = null
         sessionManager.clearSession()
