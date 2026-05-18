@@ -11,7 +11,7 @@ data class BottomNavItem(
     val icon: ImageVector,
     val selectedIcon: ImageVector
 )
-
+//parte 1
 @Composable
 fun BottomNavigationBar(
     selectedTab: Int,
