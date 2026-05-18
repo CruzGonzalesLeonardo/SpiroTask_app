@@ -35,6 +35,7 @@ class LoginViewModel(
             val firebaseUser = authResult.user
             val userId = firebaseUser?.uid ?: return false
             val userName = firebaseUser.displayName ?: firebaseUser.email?.split("@")?.first() ?: "Usuario"
+            val email = firebaseUser.email ?: ""
 
             // Guardar en nuestra base de datos local
             val result = authRepository.loginWithGoogleAccount(account)
@@ -43,7 +44,9 @@ class LoginViewModel(
                 _uiState.value = LoginUiState(
                     isSuccess = true,
                     userId = userId,
-                    userName = userName
+                    userName = userName,
+                    userEmail = email,
+                    authProvider = "google"
                 )
                 true
             } else {
@@ -87,5 +90,7 @@ data class LoginUiState(
     val isSuccess: Boolean = false,
     val errorMessage: String? = null,
     val userId: String? = null,
-    val userName: String? = null
+    val userName: String? = null,
+    val userEmail: String? = null,
+    val authProvider: String? = null
 )

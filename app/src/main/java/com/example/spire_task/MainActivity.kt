@@ -32,6 +32,9 @@ class MainActivity : ComponentActivity() {
                 ) {
                     var currentScreen by remember { mutableStateOf("login") }
                     var currentUserName by remember { mutableStateOf("") }
+                    var currentUserEmail by remember { mutableStateOf("") }
+                    var currentUserId by remember { mutableStateOf("") }
+                    var currentAuthProvider by remember { mutableStateOf("local") }
                     val scope = rememberCoroutineScope()
 
                     val authRepository = remember { AuthRepository(this@MainActivity) }
@@ -42,6 +45,9 @@ class MainActivity : ComponentActivity() {
                     LaunchedEffect(Unit) {
                         if (authRepository.isUserLoggedIn()) {
                             currentUserName = authRepository.getCurrentUserName() ?: ""
+                            currentUserId = authRepository.getCurrentUserId() ?: ""
+                            currentUserEmail = authRepository.getCurrentUserEmail() ?: ""
+                            currentAuthProvider = authRepository.getCurrentAuthProvider() ?: "local"
                             currentScreen = "dashboard"
                         }
                     }
@@ -50,10 +56,20 @@ class MainActivity : ComponentActivity() {
                         "dashboard" -> {
                             DashboardScreen(
                                 userName = currentUserName,
+                                userEmail = currentUserEmail,
+                                userId = currentUserId,
+                                authProvider = currentAuthProvider,
+                                level = 1,
+                                xp = 0f,
+                                monedas = 0,
+                                racha = 0,
                                 onLogout = {
                                     authRepository.logout()
                                     currentScreen = "login"
                                     currentUserName = ""
+                                    currentUserEmail = ""
+                                    currentUserId = ""
+                                    currentAuthProvider = "local"
                                     loginViewModel.resetState()
                                     localRegisterViewModel.resetState()
                                 }
@@ -63,7 +79,10 @@ class MainActivity : ComponentActivity() {
                             LocalRegisterScreen(
                                 viewModel = localRegisterViewModel,
                                 onRegisterSuccess = { userId, userName ->
+                                    currentUserId = userId
                                     currentUserName = userName
+                                    currentUserEmail = ""
+                                    currentAuthProvider = "local"
                                     currentScreen = "dashboard"
                                 },
                                 onNavigateBack = {
@@ -75,23 +94,26 @@ class MainActivity : ComponentActivity() {
                         else -> {
                             LoginScreen(
                                 viewModel = loginViewModel,
-                                onLoginSuccess = { userId, userName ->
+                                onLoginSuccess = { userId, userName, email, authProvider ->
+                                    currentUserId = userId
                                     currentUserName = userName
+                                    currentUserEmail = email
+                                    currentAuthProvider = authProvider
                                     currentScreen = "dashboard"
                                 },
                                 onNavigateToLocalRegister = {
-                                    // Verificar si ya existe un invitado antes de ir al registro
                                     scope.launch {
                                         val result = loginViewModel.checkAndHandleGuest()
                                         when (result) {
                                             is GuestCheckResult.Exists -> {
-                                                // Invitado existe, iniciar sesión automáticamente
                                                 Log.d("GUEST", "Invitado existente: ${result.userName}")
+                                                currentUserId = result.userId
                                                 currentUserName = result.userName
+                                                currentUserEmail = ""
+                                                currentAuthProvider = "local"
                                                 currentScreen = "dashboard"
                                             }
                                             GuestCheckResult.None -> {
-                                                // No existe invitado, ir a pantalla de registro
                                                 currentScreen = "local_register"
                                                 loginViewModel.resetState()
                                             }

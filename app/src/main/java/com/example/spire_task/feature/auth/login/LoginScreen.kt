@@ -14,7 +14,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun LoginScreen(
     viewModel: LoginViewModel,
-    onLoginSuccess: (userId: String, userName: String) -> Unit,
+    onLoginSuccess: (userId: String, userName: String, email: String, authProvider: String) -> Unit,
     onNavigateToLocalRegister: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -25,13 +25,26 @@ fun LoginScreen(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
         scope.launch {
-            viewModel.handleGoogleSignInResult(result.data)
+            val success = viewModel.handleGoogleSignInResult(result.data)
+            if (success) {
+                // El ViewModel ya actualizó el uiState con los datos
+            }
         }
     }
 
+    // Observar cuando el login es exitoso (desde Google)
     LaunchedEffect(uiState.isSuccess) {
-        if (uiState.isSuccess && uiState.userId != null && uiState.userName != null) {
-            onLoginSuccess(uiState.userId!!, uiState.userName!!)
+        if (uiState.isSuccess &&
+            uiState.userId != null &&
+            uiState.userName != null &&
+            uiState.userEmail != null &&
+            uiState.authProvider != null) {
+            onLoginSuccess(
+                uiState.userId!!,
+                uiState.userName!!,
+                uiState.userEmail!!,
+                uiState.authProvider!!
+            )
             viewModel.resetState()
         }
     }

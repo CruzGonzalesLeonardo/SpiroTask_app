@@ -136,13 +136,14 @@ class AuthRepository(private val context: Context) {
                 val profile = ProfileEntity(
                     idUser = userId,
                     userName = userName,
+                    email = "",
                     authProvider = "local"
                 )
 
                 profileDao.insertar(profile)
                 _currentUserId = userId
                 _currentUserName = userName
-                sessionManager.saveSession(userId, userName)
+                sessionManager.saveSession(userId, userName, "", "local")
                 Result.success(profile)
 
             } catch (e: Exception) {
@@ -150,6 +151,7 @@ class AuthRepository(private val context: Context) {
             }
         }
     }
+
     suspend fun loginWithGoogleAccount(account: GoogleSignInAccount): Result<ProfileEntity> {
         return withContext(Dispatchers.IO) {
             try {
@@ -183,4 +185,12 @@ class AuthRepository(private val context: Context) {
             }
         }
     }
+    fun getCurrentUserEmail(): String? {
+        return sessionManager.getUserEmail()
+    }
+
+    fun getCurrentAuthProvider(): String? {
+        return sessionManager.getAuthProvider()
+    }
+
 }
