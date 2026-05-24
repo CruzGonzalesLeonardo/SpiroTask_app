@@ -8,6 +8,7 @@ import androidx.compose.ui.Modifier
 import com.example.spire_task.feature.dashboard.components.AppBar
 import com.example.spire_task.feature.dashboard.components.BottomNavigationBar
 import com.example.spire_task.feature.dashboard.screens.HomeScreen
+import com.example.spire_task.feature.dashboard.screens.KanbanDashboardScreen
 import com.example.spire_task.feature.dashboard.screens.ProfileScreen
 import com.example.spire_task.feature.dashboard.screens.TareaPendiente
 
@@ -25,7 +26,6 @@ fun DashboardScreen(
 ) {
     var selectedTab by remember { mutableStateOf(0) }
 
-    // Datos de ejemplo para tareas pendientes
     val tareasPendientes = listOf(
         TareaPendiente("1", "Terminar informe"),
         TareaPendiente("2", "Estudiar Kotlin"),
@@ -62,17 +62,8 @@ fun DashboardScreen(
                     racha = racha,
                     tareasPendientes = tareasPendientes
                 )
-                1 -> {
-                    // TODO: KanbanDashboardScreen() - Módulo de Jorcaef
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text("Pantalla Kanban - Próximamente")
-                    }
-                }
+                1 -> KanbanDashboardScreen()
                 2 -> {
-                    // TODO: PetProfileScreen() - Módulo de Medalith
                     Box(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center

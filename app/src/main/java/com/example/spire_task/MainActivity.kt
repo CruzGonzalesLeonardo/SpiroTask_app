@@ -7,7 +7,12 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.runtime.*
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.example.spire_task.data.repository.AuthRepository
 import com.example.spire_task.feature.auth.localregister.LocalRegisterScreen
@@ -41,7 +46,6 @@ class MainActivity : ComponentActivity() {
                     val loginViewModel = remember { LoginViewModel(authRepository, this@MainActivity) }
                     val localRegisterViewModel = remember { LocalRegisterViewModel(authRepository) }
 
-                    // Verificar sesión guardada al iniciar
                     LaunchedEffect(Unit) {
                         if (authRepository.isUserLoggedIn()) {
                             currentUserName = authRepository.getCurrentUserName() ?: ""
@@ -59,28 +63,17 @@ class MainActivity : ComponentActivity() {
                                 userEmail = currentUserEmail,
                                 userId = currentUserId,
                                 authProvider = currentAuthProvider,
-                                level = 1,
-                                xp = 0f,
-                                monedas = 0,
-                                racha = 0,
                                 onLogout = {
-                                    if (currentAuthProvider == "google") {
-                                        scope.launch {
-                                            authRepository.logoutWithGoogle()
-                                        }
-                                    } else {
-                                        authRepository.logout()
-                                    }
-                                    currentScreen = "login"
+                                    authRepository.logout()
                                     currentUserName = ""
                                     currentUserEmail = ""
                                     currentUserId = ""
                                     currentAuthProvider = "local"
-                                    loginViewModel.resetState()
-                                    localRegisterViewModel.resetState()
+                                    currentScreen = "login"
                                 }
                             )
                         }
+
                         "local_register" -> {
                             LocalRegisterScreen(
                                 viewModel = localRegisterViewModel,
@@ -97,6 +90,7 @@ class MainActivity : ComponentActivity() {
                                 }
                             )
                         }
+
                         else -> {
                             LoginScreen(
                                 viewModel = loginViewModel,
@@ -119,6 +113,7 @@ class MainActivity : ComponentActivity() {
                                                 currentAuthProvider = "local"
                                                 currentScreen = "dashboard"
                                             }
+
                                             GuestCheckResult.None -> {
                                                 currentScreen = "local_register"
                                                 loginViewModel.resetState()

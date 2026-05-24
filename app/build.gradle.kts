@@ -75,4 +75,6 @@ dependencies {
 
     // Google Play Services Auth (para Google Sign-In)
     implementation("com.google.android.gms:play-services-auth:21.3.0")
+
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
 }
