@@ -4,7 +4,6 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.spire_task.data.local.dao.ColumnDao
 import com.example.spire_task.data.local.dao.ProfileDao
 import com.example.spire_task.data.local.dao.TaskDao
@@ -13,9 +12,6 @@ import com.example.spire_task.data.local.entities.ProfileEntity
 import com.example.spire_task.data.local.entities.SubTaskEntity
 import com.example.spire_task.data.local.entities.TaskEntity
 import com.example.spire_task.data.local.entities.TaskHistoryEntity
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 @Database(
     entities = [
@@ -25,7 +21,7 @@ import kotlinx.coroutines.launch
         ColumnEntity::class,
         TaskHistoryEntity::class
     ],
-    version = 1,
+    version = 1,  // ✅ Mantén versión 1 durante desarrollo
     exportSchema = false
 )
 abstract class SpiroDatabase : RoomDatabase() {
@@ -44,23 +40,12 @@ abstract class SpiroDatabase : RoomDatabase() {
                     context.applicationContext,
                     SpiroDatabase::class.java,
                     "spire_task.db"
-                ).build()
+                )
+                    // ⚠️ SOLO PARA DESARROLLO: Destruye y recrea la DB si hay cambios
+                    .fallbackToDestructiveMigration()
+                    .build()
 
                 INSTANCE = instance
-
-                CoroutineScope(Dispatchers.IO).launch {
-                    val columnas = instance.columnDao().getAllColumnsOnce()
-                    if (columnas.isEmpty()) {
-                        instance.columnDao().insertColumns(
-                            listOf(
-                                ColumnEntity(name = "Por hacer", wipLimit = 10, order = 1),
-                                ColumnEntity(name = "En progreso", wipLimit = 5, order = 2),
-                                ColumnEntity(name = "Completado", wipLimit = 999, order = 3)
-                            )
-                        )
-                    }
-                }
-
                 instance
             }
         }

@@ -1,4 +1,4 @@
-package com.example.spire_task.feature.dashboard.screens
+package com.example.spire_task.feature.profile.main
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn

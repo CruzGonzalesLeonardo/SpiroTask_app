@@ -119,7 +119,6 @@ class AuthRepository(private val context: Context) {
         _currentUserName = null
         sessionManager.clearSession()
     }
-
     suspend fun logoutWithGoogle() {
         val googleManager = GoogleSignInManager(context)
         googleManager.signOut()

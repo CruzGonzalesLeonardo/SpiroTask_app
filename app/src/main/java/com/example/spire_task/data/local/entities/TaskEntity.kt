@@ -28,5 +28,6 @@ data class TaskEntity(
     val isFavorite: Boolean = false,
     val xpValue: Int = 0,
     val createdAt: Long = System.currentTimeMillis(),
-    val updatedAt: Long = System.currentTimeMillis()
+    val updatedAt: Long = System.currentTimeMillis(),
+    val userId: String
 )

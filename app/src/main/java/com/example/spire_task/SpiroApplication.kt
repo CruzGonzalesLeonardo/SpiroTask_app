@@ -4,15 +4,30 @@ import android.app.Application
 import com.example.spire_task.data.local.database.SpiroDatabase
 import com.example.spire_task.data.repository.TaskRepositoryImpl
 import com.example.spire_task.domain.repositories.ITaskRepository
+import com.google.firebase.FirebaseApp
 
 class SpiroApplication : Application() {
 
-    val database by lazy {
-        SpiroDatabase.getDatabase(this)
+    lateinit var taskRepository: ITaskRepository
+        private set
+
+    companion object {
+        lateinit var instance: SpiroApplication
+            private set
     }
 
-    val taskRepository: ITaskRepository by lazy {
-        TaskRepositoryImpl(
+    override fun onCreate() {
+        super.onCreate()
+        instance = this
+
+        // Inicializar Firebase
+        FirebaseApp.initializeApp(this)
+
+        // Inicializar base de datos
+        val database = SpiroDatabase.getDatabase(this)
+
+        // Inicializar repositorios
+        taskRepository = TaskRepositoryImpl(
             taskDao = database.taskDao(),
             columnDao = database.columnDao()
         )

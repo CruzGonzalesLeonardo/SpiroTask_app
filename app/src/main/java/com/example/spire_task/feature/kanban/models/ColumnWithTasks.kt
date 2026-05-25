@@ -1,4 +1,4 @@
-package com.example.spire_task.feature.dashboard.components
+package com.example.spire_task.feature.kanban.models
 
 import com.example.spire_task.data.local.entities.ColumnEntity
 import com.example.spire_task.data.local.entities.TaskEntity

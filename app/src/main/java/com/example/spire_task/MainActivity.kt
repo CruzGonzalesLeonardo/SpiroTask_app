@@ -64,12 +64,20 @@ class MainActivity : ComponentActivity() {
                                 userId = currentUserId,
                                 authProvider = currentAuthProvider,
                                 onLogout = {
-                                    authRepository.logout()
+                                    if (currentAuthProvider == "google") {
+                                        scope.launch {
+                                            authRepository.logoutWithGoogle()
+                                        }
+                                    } else {
+                                        authRepository.logout()
+                                    }
+                                    currentScreen = "login"   // ← Vuelve a la pantalla de login
                                     currentUserName = ""
                                     currentUserEmail = ""
                                     currentUserId = ""
                                     currentAuthProvider = "local"
-                                    currentScreen = "login"
+                                    loginViewModel.resetState()
+                                    localRegisterViewModel.resetState()
                                 }
                             )
                         }

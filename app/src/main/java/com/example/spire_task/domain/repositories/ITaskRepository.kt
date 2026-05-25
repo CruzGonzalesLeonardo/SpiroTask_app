@@ -2,24 +2,24 @@ package com.example.spire_task.domain.repositories
 
 import com.example.spire_task.data.local.entities.ColumnEntity
 import com.example.spire_task.data.local.entities.TaskEntity
-import com.example.spire_task.feature.dashboard.components.ColumnWithTasks
+import com.example.spire_task.feature.kanban.models.ColumnWithTasks
 import kotlinx.coroutines.flow.Flow
 
 interface ITaskRepository {
 
-    fun getAllTasks(): Flow<List<TaskEntity>>
+    fun getAllTasks(userId: String): Flow<List<TaskEntity>>
 
-    fun getTasksByColumn(columnId: Int): Flow<List<TaskEntity>>
+    fun getTasksByColumn(columnId: Int, userId: String): Flow<List<TaskEntity>>
 
-    fun getColumnsWithTasks(): Flow<List<ColumnWithTasks>>
+    fun getColumnsWithTasks(userId: String): Flow<List<ColumnWithTasks>>
 
-    suspend fun getTaskById(taskId: Int): TaskEntity?
+    fun getFavoriteTasks(userId: String): Flow<List<TaskEntity>>
 
-    fun getTasksByDate(date: Long): Flow<List<TaskEntity>>
+    fun getTasksByDate(date: Long, userId: String): Flow<List<TaskEntity>>
 
-    fun getFavoriteTasks(): Flow<List<TaskEntity>>
+    suspend fun getTaskById(taskId: Int, userId: String): TaskEntity?
 
-    fun getAllColumns(): Flow<List<ColumnEntity>>
+    fun getAllColumns(userId: String): Flow<List<ColumnEntity>>
 
     suspend fun insertTask(task: TaskEntity)
 
@@ -29,5 +29,5 @@ interface ITaskRepository {
 
     suspend fun insertColumn(column: ColumnEntity)
 
-    suspend fun insertDefaultColumns()
+    suspend fun insertDefaultColumns(userId: String)
 }
