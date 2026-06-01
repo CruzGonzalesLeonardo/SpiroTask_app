@@ -20,6 +20,9 @@ class ProfileViewModel(
     val purchaseHistory: StateFlow<List<ProductEntity>> = storeRepository.getOwnedProducts(userId)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    val activePet: StateFlow<ProductEntity?> = storeRepository.getActivePet(userId)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
     fun updateProfile(newName: String, newEmail: String, onSuccess: () -> Unit) {
         viewModelScope.launch {
             val result = authRepository.updateProfile(userId, newName, newEmail)

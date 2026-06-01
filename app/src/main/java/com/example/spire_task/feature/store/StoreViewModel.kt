@@ -1,5 +1,8 @@
 package com.example.spire_task.feature.store
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -14,6 +17,9 @@ class StoreViewModel(
     private val repository: StoreRepository,
     private val userId: String
 ) : ViewModel() {
+
+    var purchaseStatus by mutableStateOf<Result<Unit>?>(null)
+        private set
 
     val allProducts: StateFlow<List<ProductEntity>> = repository.allProducts
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -32,8 +38,13 @@ class StoreViewModel(
 
     fun purchaseProduct(productId: String) {
         viewModelScope.launch {
-            repository.purchaseProduct(userId, productId)
+            val result = repository.purchaseProduct(userId, productId)
+            purchaseStatus = result
         }
+    }
+
+    fun clearPurchaseStatus() {
+        purchaseStatus = null
     }
 
     fun activatePet(productId: String) {

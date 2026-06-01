@@ -10,7 +10,28 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
 import com.example.spire_task.data.local.entities.ProductEntity
+
+@Composable
+fun ProductImage(assetPath: String?, modifier: Modifier = Modifier) {
+    if (assetPath != null) {
+        AsyncImage(
+            model = assetPath,
+            contentDescription = null,
+            modifier = modifier,
+            contentScale = ContentScale.Fit
+        )
+    } else {
+        Box(
+            modifier = modifier,
+            contentAlignment = Alignment.Center
+        ) {
+            Text("📦")
+        }
+    }
+}
 
 @Composable
 fun StoreScreen(
@@ -63,14 +84,12 @@ fun ProductCard(product: ProductEntity, onClick: () -> Unit) {
             .clickable(onClick = onClick)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Box(
+            ProductImage(
+                assetPath = product.assetPath,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(100.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("📦 ${product.name}") // Placeholder for image/animation
-            }
+                    .height(100.dp)
+            )
             Text(text = product.name, style = MaterialTheme.typography.titleMedium)
             Text(text = "${product.price} 💰", style = MaterialTheme.typography.bodyMedium)
         }
@@ -88,6 +107,12 @@ fun CollectionGrid(ownedProducts: List<ProductEntity>, onActivate: (ProductEntit
         items(ownedProducts) { product ->
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp)) {
+                    ProductImage(
+                        assetPath = product.assetPath,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(100.dp)
+                    )
                     Text(text = product.name, style = MaterialTheme.typography.titleMedium)
                     Button(
                         onClick = { onActivate(product) },

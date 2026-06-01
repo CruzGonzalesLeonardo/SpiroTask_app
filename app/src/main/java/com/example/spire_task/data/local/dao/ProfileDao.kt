@@ -30,6 +30,10 @@ interface ProfileDao {
     @Query("UPDATE tblPerfiles SET xpTotal = :xp, level = :level WHERE idUser = :userId")
     suspend fun actualizarProgreso(userId: String, xp: Float, level: Int)
 
+    // Actualizar monedas (puede ser positivo o negativo)
+    @Query("UPDATE tblPerfiles SET monedas = :nuevasMonedas WHERE idUser = :userId")
+    suspend fun actualizarMonedas(userId: String, nuevasMonedas: Int)
+
     // Sumar monedas
     @Query("UPDATE tblPerfiles SET monedas = monedas + :cantidad WHERE idUser = :userId")
     suspend fun sumarMonedas(userId: String, cantidad: Int)

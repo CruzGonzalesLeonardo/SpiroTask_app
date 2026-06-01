@@ -14,6 +14,9 @@ interface StoreDao {
     @Query("SELECT * FROM tblProductos")
     fun getAllProducts(): Flow<List<ProductEntity>>
 
+    @Query("SELECT * FROM tblProductos WHERE idProduct = :productId LIMIT 1")
+    suspend fun getProductById(productId: String): ProductEntity?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertProducts(products: List<ProductEntity>)
 

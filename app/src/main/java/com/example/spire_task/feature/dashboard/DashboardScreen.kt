@@ -53,7 +53,7 @@ fun DashboardScreen(
     
     // Repositorios
     val authRepo = remember { AuthRepository(context) }
-    val storeRepo = remember { StoreRepository(database.storeDao()) }
+    val storeRepo = remember { StoreRepository(database.storeDao(), database.profileDao()) }
     val settingsRepo = remember { SettingsRepository(database.settingsDao()) }
 
     // ViewModels
@@ -109,10 +109,7 @@ fun DashboardScreen(
             } else if (currentSubScreen == "product_detail" && selectedProduct != null) {
                 ProductDetailScreen(
                     product = selectedProduct!!,
-                    onPurchase = { 
-                        storeViewModel.purchaseProduct(it.idProduct)
-                        currentSubScreen = null
-                    },
+                    viewModel = storeViewModel,
                     onBack = { currentSubScreen = null }
                 )
             } else {
@@ -126,7 +123,8 @@ fun DashboardScreen(
                         monedas = monedas,
                         racha = racha,
                         onNavigateToKanban = { selectedTab = 1 },
-                        onCreateTaskClick = { mostrarDialogoCrearRapida = true }
+                        onCreateTaskClick = { mostrarDialogoCrearRapida = true },
+                        onNavigateToStore = { selectedTab = 2 }
                     )
                     1 -> KanbanScreen(
                         viewModel = kanbanViewModel
@@ -143,6 +141,9 @@ fun DashboardScreen(
                         userName = userName,
                         userEmail = userEmail,
                         userId = userId,
+                        level = level,
+                        monedas = monedas,
+                        racha = racha,
                         authProvider = authProvider,
                         onLogout = onLogout,
                         onSettingsClick = { currentSubScreen = "settings" }

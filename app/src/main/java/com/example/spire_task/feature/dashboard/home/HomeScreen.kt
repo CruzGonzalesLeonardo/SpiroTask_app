@@ -13,29 +13,42 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
+import com.example.spire_task.data.local.entities.ProductEntity
 import com.example.spire_task.data.local.entities.TaskEntity
 import com.example.spire_task.feature.kanban.main.KanbanViewModel
 import com.example.spire_task.feature.kanban.main.KanbanViewModelFactory
+import com.example.spire_task.feature.store.StoreViewModel
+import com.example.spire_task.feature.store.StoreViewModelFactory
 import java.text.SimpleDateFormat
 import java.util.*
 
 @Composable
 fun HomeScreen(
     userName: String,
-    userId: String,  // ← NUEVO: Recibir userId
+    userId: String,
     level: Int = 1,
     xp: Float = 0f,
     xpNeeded: Int = 100,
     monedas: Int = 0,
     racha: Int = 0,
-    onNavigateToKanban: () -> Unit = {},  // ← NUEVO: Navegar a Kanban
-    onCreateTaskClick: () -> Unit = {}    // ← NUEVO: Crear tarea rápida
+    onNavigateToKanban: () -> Unit = {},
+    onCreateTaskClick: () -> Unit = {},
+    onNavigateToStore: () -> Unit = {}
 ) {
     // ✅ Obtener el ViewModel de Kanban con el userId actual
     val kanbanViewModel: KanbanViewModel = viewModel(
         key = userId,
         factory = KanbanViewModelFactory.createFactory(userId)
     )
+
+    val storeViewModel: StoreViewModel = viewModel(
+        key = "store_$userId",
+        factory = StoreViewModelFactory(com.example.spire_task.SpiroApplication.instance.storeRepository, userId)
+    )
+
+    val activePet by storeViewModel.activePet.collectAsState(initial = null)
 
     val uiState by kanbanViewModel.uiState.collectAsState()
 
@@ -349,19 +362,38 @@ fun HomeScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Column {
-                        Text("🐱 Tu mascota", style = MaterialTheme.typography.titleMedium)
-                        Text(
-                            text = when {
-                                tareasPendientes.isEmpty() -> "¡Está muy feliz! 🎉"
-                                tareasVencidas.isNotEmpty() -> "Está preocupada por las tareas vencidas 😟"
-                                tareasPorVencer.isNotEmpty() -> "Te recuerda las tareas por vencer ⏰"
-                                else -> "¡Está contenta con tu progreso! ✨"
-                            },
-                            style = MaterialTheme.typography.bodyMedium
-                        )
+                    Row(
+                        modifier = Modifier.weight(1f),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        Box(modifier = Modifier.size(64.dp)) {
+                            if (activePet?.assetPath != null) {
+                                AsyncImage(
+                                    model = activePet?.assetPath,
+                                    contentDescription = null,
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = ContentScale.Fit
+                                )
+                            } else {
+                                Text("🐱", style = MaterialTheme.typography.headlineLarge)
+                            }
+                        }
+                        Column {
+                            val petName = activePet?.name ?: "Tu mascota"
+                            Text(petName, style = MaterialTheme.typography.titleMedium)
+                            Text(
+                                text = when {
+                                    tareasPendientes.isEmpty() -> "¡Está muy feliz! 🎉"
+                                    tareasVencidas.isNotEmpty() -> "Está preocupada 😟"
+                                    tareasPorVencer.isNotEmpty() -> "Te recuerda las tareas ⏰"
+                                    else -> "¡Está contenta! ✨"
+                                },
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
                     }
-                    TextButton(onClick = { /* Navegar a Mascota */ }) {
+                    TextButton(onClick = onNavigateToStore) {
                         Text("Cuidar →")
                     }
                 }

@@ -8,8 +8,11 @@ import com.example.spire_task.data.repository.StoreRepository
 import com.example.spire_task.data.repository.TaskRepositoryImpl
 import com.example.spire_task.domain.repositories.ITaskRepository
 import com.google.firebase.FirebaseApp
+import coil.ImageLoader
+import coil.ImageLoaderFactory
+import coil.decode.SvgDecoder
 
-class SpiroApplication : Application() {
+class SpiroApplication : Application(), ImageLoaderFactory {
 
     lateinit var taskRepository: ITaskRepository
         private set
@@ -41,7 +44,18 @@ class SpiroApplication : Application() {
             columnDao = database.columnDao()
         )
         authRepository = AuthRepository(this)
-        storeRepository = StoreRepository(database.storeDao())
+        storeRepository = StoreRepository(
+            storeDao = database.storeDao(),
+            profileDao = database.profileDao()
+        )
         settingsRepository = SettingsRepository(database.settingsDao())
+    }
+
+    override fun newImageLoader(): ImageLoader {
+        return ImageLoader.Builder(this)
+            .components {
+                add(SvgDecoder.Factory())
+            }
+            .build()
     }
 }
