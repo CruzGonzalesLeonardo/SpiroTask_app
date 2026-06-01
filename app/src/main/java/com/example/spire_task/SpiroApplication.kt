@@ -11,6 +11,11 @@ import com.google.firebase.FirebaseApp
 import coil.ImageLoader
 import coil.ImageLoaderFactory
 import coil.decode.SvgDecoder
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.SupervisorJob
+
 
 class SpiroApplication : Application(), ImageLoaderFactory {
 
@@ -49,6 +54,14 @@ class SpiroApplication : Application(), ImageLoaderFactory {
             profileDao = database.profileDao()
         )
         settingsRepository = SettingsRepository(database.settingsDao())
+
+        // 🛠️ CÓDIGO TEMPORAL PARA PRUEBAS: Otorgar 1000 monedas al iniciar
+        CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
+            val profileDao = database.profileDao()
+            profileDao.obtenerUsuarioInvitado()?.let {
+                profileDao.sumarMonedas(it.idUser, 1000)
+            }
+        }
     }
 
     override fun newImageLoader(): ImageLoader {
