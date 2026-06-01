@@ -14,6 +14,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import com.example.spire_task.data.repository.AuthRepository
 import com.example.spire_task.feature.auth.localregister.LocalRegisterScreen
 import com.example.spire_task.feature.auth.localregister.LocalRegisterViewModel
@@ -30,7 +31,24 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-            Spire_TaskTheme {
+            val context = LocalContext.current
+            val app = context.applicationContext as SpiroApplication
+            val settingsRepo = app.settingsRepository
+            
+            var isDarkMode by remember { mutableStateOf(false) }
+            var currentUserIdState by remember { mutableStateOf("") }
+
+            val authRepository = remember { app.authRepository }
+
+            LaunchedEffect(currentUserIdState) {
+                if (currentUserIdState.isNotEmpty()) {
+                    settingsRepo.getSettings(currentUserIdState).collect { settings ->
+                        isDarkMode = settings?.isDarkMode ?: false
+                    }
+                }
+            }
+
+            Spire_TaskTheme(darkTheme = isDarkMode) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
@@ -42,7 +60,6 @@ class MainActivity : ComponentActivity() {
                     var currentAuthProvider by remember { mutableStateOf("local") }
                     val scope = rememberCoroutineScope()
 
-                    val authRepository = remember { AuthRepository(this@MainActivity) }
                     val loginViewModel = remember { LoginViewModel(authRepository, this@MainActivity) }
                     val localRegisterViewModel = remember { LocalRegisterViewModel(authRepository) }
 
@@ -50,6 +67,7 @@ class MainActivity : ComponentActivity() {
                         if (authRepository.isUserLoggedIn()) {
                             currentUserName = authRepository.getCurrentUserName() ?: ""
                             currentUserId = authRepository.getCurrentUserId() ?: ""
+                            currentUserIdState = currentUserId
                             currentUserEmail = authRepository.getCurrentUserEmail() ?: ""
                             currentAuthProvider = authRepository.getCurrentAuthProvider() ?: "local"
                             currentScreen = "dashboard"
@@ -71,10 +89,11 @@ class MainActivity : ComponentActivity() {
                                     } else {
                                         authRepository.logout()
                                     }
-                                    currentScreen = "login"   // ← Vuelve a la pantalla de login
+                                    currentScreen = "login"
                                     currentUserName = ""
                                     currentUserEmail = ""
                                     currentUserId = ""
+                                    currentUserIdState = ""
                                     currentAuthProvider = "local"
                                     loginViewModel.resetState()
                                     localRegisterViewModel.resetState()
@@ -87,6 +106,7 @@ class MainActivity : ComponentActivity() {
                                 viewModel = localRegisterViewModel,
                                 onRegisterSuccess = { userId, userName ->
                                     currentUserId = userId
+                                    currentUserIdState = userId
                                     currentUserName = userName
                                     currentUserEmail = ""
                                     currentAuthProvider = "local"
@@ -104,6 +124,7 @@ class MainActivity : ComponentActivity() {
                                 viewModel = loginViewModel,
                                 onLoginSuccess = { userId, userName, email, authProvider ->
                                     currentUserId = userId
+                                    currentUserIdState = userId
                                     currentUserName = userName
                                     currentUserEmail = email
                                     currentAuthProvider = authProvider
@@ -114,8 +135,8 @@ class MainActivity : ComponentActivity() {
                                         val result = loginViewModel.checkAndHandleGuest()
                                         when (result) {
                                             is GuestCheckResult.Exists -> {
-                                                Log.d("GUEST", "Invitado existente: ${result.userName}")
                                                 currentUserId = result.userId
+                                                currentUserIdState = result.userId
                                                 currentUserName = result.userName
                                                 currentUserEmail = ""
                                                 currentAuthProvider = "local"

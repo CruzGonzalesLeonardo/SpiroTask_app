@@ -2,6 +2,9 @@ package com.example.spire_task
 
 import android.app.Application
 import com.example.spire_task.data.local.database.SpiroDatabase
+import com.example.spire_task.data.repository.AuthRepository
+import com.example.spire_task.data.repository.SettingsRepository
+import com.example.spire_task.data.repository.StoreRepository
 import com.example.spire_task.data.repository.TaskRepositoryImpl
 import com.example.spire_task.domain.repositories.ITaskRepository
 import com.google.firebase.FirebaseApp
@@ -9,6 +12,12 @@ import com.google.firebase.FirebaseApp
 class SpiroApplication : Application() {
 
     lateinit var taskRepository: ITaskRepository
+        private set
+    lateinit var authRepository: AuthRepository
+        private set
+    lateinit var storeRepository: StoreRepository
+        private set
+    lateinit var settingsRepository: SettingsRepository
         private set
 
     companion object {
@@ -31,5 +40,8 @@ class SpiroApplication : Application() {
             taskDao = database.taskDao(),
             columnDao = database.columnDao()
         )
+        authRepository = AuthRepository(this)
+        storeRepository = StoreRepository(database.storeDao())
+        settingsRepository = SettingsRepository(database.settingsDao())
     }
 }

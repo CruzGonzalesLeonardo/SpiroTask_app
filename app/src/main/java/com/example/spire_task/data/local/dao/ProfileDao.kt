@@ -42,6 +42,9 @@ interface ProfileDao {
     @Query("DELETE FROM tblPerfiles WHERE idUser = :userId")
     suspend fun eliminar(userId: String)
 
+    @Query("UPDATE tblPerfiles SET userName = :newName, email = :newEmail WHERE idUser = :userId")
+    suspend fun actualizarDatos(userId: String, newName: String, newEmail: String)
+
     @Query("SELECT * FROM tblPerfiles WHERE authProvider = 'local' LIMIT 1")
     suspend fun obtenerUsuarioInvitado(): ProfileEntity?
 }

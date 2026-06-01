@@ -132,6 +132,31 @@ class AuthRepository(private val context: Context) {
             profileDao.obtenerPorId(userId)
         }
     }
+
+    suspend fun updateProfile(userId: String, newName: String, newEmail: String): Result<Unit> {
+        return withContext(Dispatchers.IO) {
+            try {
+                profileDao.actualizarDatos(userId, newName, newEmail)
+                _currentUserName = newName
+                sessionManager.saveSession(userId, newName, newEmail, getCurrentAuthProvider() ?: "local")
+                Result.success(Unit)
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        }
+    }
+
+    suspend fun deleteAccount(userId: String): Result<Unit> {
+        return withContext(Dispatchers.IO) {
+            try {
+                profileDao.eliminar(userId)
+                logout()
+                Result.success(Unit)
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        }
+    }
     suspend fun registerLocalUser(userName: String): Result<ProfileEntity> {
         return withContext(Dispatchers.IO) {
             try {
