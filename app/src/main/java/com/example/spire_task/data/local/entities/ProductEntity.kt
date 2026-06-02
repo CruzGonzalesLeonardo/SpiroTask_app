@@ -11,5 +11,5 @@ data class ProductEntity(
     val description: String,
     val price: Int,
     val type: String, // "PET", "ACCESSORY"
-    val assetPath: String // Path to animation or image
+    val assetPath: String? // Path to animation or image
 )

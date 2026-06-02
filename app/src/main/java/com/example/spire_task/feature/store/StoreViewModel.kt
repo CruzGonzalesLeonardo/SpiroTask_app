@@ -30,10 +30,62 @@ class StoreViewModel(
     val activePet: StateFlow<ProductEntity?> = repository.getActivePet(userId)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
+    // ✅ Variables para la selección de primera mascota
+    var availablePets by mutableStateOf<List<ProductEntity>>(emptyList())
+        private set
+
+    var isLoading by mutableStateOf(false)
+        private set
+
+    var errorMessage by mutableStateOf<String?>(null)
+        private set
+
     init {
         viewModelScope.launch {
             repository.initStoreCatalog()
+            loadAvailablePets()
         }
+    }
+
+    // ✅ Cargar todas las mascotas disponibles en la tienda
+    private suspend fun loadAvailablePets() {
+        isLoading = true
+        try {
+            val all = repository.allProducts.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList()).value
+            availablePets = all.filter {
+                it.type == "PET"
+            }
+        } catch (e: Exception) {
+            errorMessage = "Error al cargar mascotas: ${e.message}"
+        } finally {
+            isLoading = false
+        }
+    }
+
+    // ✅ Adoptar primera mascota (SIEMPRE GRATIS)
+    fun adoptFirstPet(petId: String, onComplete: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            isLoading = true
+            try {
+                val result = repository.adoptFirstPet(userId, petId)
+                if (result.isSuccess) {
+                    errorMessage = null
+                    onComplete(true)
+                } else {
+                    errorMessage = result.exceptionOrNull()?.message ?: "No se pudo adoptar la mascota"
+                    onComplete(false)
+                }
+            } catch (e: Exception) {
+                errorMessage = "Error: ${e.message}"
+                onComplete(false)
+            } finally {
+                isLoading = false
+            }
+        }
+    }
+
+    fun clearError() {
+        errorMessage = null
     }
 
     fun purchaseProduct(productId: String) {

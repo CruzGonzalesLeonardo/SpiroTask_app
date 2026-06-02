@@ -22,6 +22,7 @@ import com.example.spire_task.feature.auth.login.GuestCheckResult
 import com.example.spire_task.feature.auth.login.LoginScreen
 import com.example.spire_task.feature.auth.login.LoginViewModel
 import com.example.spire_task.feature.dashboard.DashboardScreen
+import com.example.spire_task.feature.onboarding.SelectPetScreen
 import com.example.spire_task.ui.theme.Spire_TaskTheme
 import kotlinx.coroutines.launch
 
@@ -34,7 +35,7 @@ class MainActivity : ComponentActivity() {
             val context = LocalContext.current
             val app = context.applicationContext as SpiroApplication
             val settingsRepo = app.settingsRepository
-            
+
             var isDarkMode by remember { mutableStateOf(false) }
             var currentUserIdState by remember { mutableStateOf("") }
 
@@ -58,99 +59,170 @@ class MainActivity : ComponentActivity() {
                     var currentUserEmail by remember { mutableStateOf("") }
                     var currentUserId by remember { mutableStateOf("") }
                     var currentAuthProvider by remember { mutableStateOf("local") }
+
+                    // ✅ Variables para la selección de mascota
+                    var showPetSelection by remember { mutableStateOf(false) }
+                    var tempUserId by remember { mutableStateOf("") }
+                    var tempUserName by remember { mutableStateOf("") }
+
                     val scope = rememberCoroutineScope()
 
                     val loginViewModel = remember { LoginViewModel(authRepository, this@MainActivity) }
                     val localRegisterViewModel = remember { LocalRegisterViewModel(authRepository) }
 
+                    // ✅ Verificar si el usuario ya tiene mascota al iniciar sesión
                     LaunchedEffect(Unit) {
                         if (authRepository.isUserLoggedIn()) {
-                            currentUserName = authRepository.getCurrentUserName() ?: ""
-                            currentUserId = authRepository.getCurrentUserId() ?: ""
-                            currentUserIdState = currentUserId
-                            currentUserEmail = authRepository.getCurrentUserEmail() ?: ""
-                            currentAuthProvider = authRepository.getCurrentAuthProvider() ?: "local"
-                            currentScreen = "dashboard"
+                            val userId = authRepository.getCurrentUserId() ?: ""
+                            val userName = authRepository.getCurrentUserName() ?: ""
+                            val userEmail = authRepository.getCurrentUserEmail() ?: ""
+                            val authProvider = authRepository.getCurrentAuthProvider() ?: "local"
+
+                            currentUserId = userId
+                            currentUserIdState = userId
+                            currentUserName = userName
+                            currentUserEmail = userEmail
+                            currentAuthProvider = authProvider
+
+                            // Verificar si ya tiene mascota
+                            val hasPet = app.storeRepository.hasUserAdoptedFirstPet(userId)
+                            if (hasPet) {
+                                currentScreen = "dashboard"
+                            } else {
+                                // Guardar datos temporalmente y mostrar selección de mascota
+                                tempUserId = userId
+                                tempUserName = userName
+                                showPetSelection = true
+                            }
                         }
                     }
 
-                    when (currentScreen) {
-                        "dashboard" -> {
-                            DashboardScreen(
-                                userName = currentUserName,
-                                userEmail = currentUserEmail,
-                                userId = currentUserId,
-                                authProvider = currentAuthProvider,
-                                onLogout = {
-                                    if (currentAuthProvider == "google") {
+                    // ✅ Pantalla de selección de mascota (prioridad)
+                    if (showPetSelection) {
+                        SelectPetScreen(
+                            userId = tempUserId,
+                            userName = tempUserName,
+                            onPetSelected = {
+                                showPetSelection = false
+                                currentScreen = "dashboard"
+                            }
+                        )
+                    } else {
+                        when (currentScreen) {
+                            "dashboard" -> {
+                                DashboardScreen(
+                                    userName = currentUserName,
+                                    userEmail = currentUserEmail,
+                                    userId = currentUserId,
+                                    authProvider = currentAuthProvider,
+                                    onLogout = {
+                                        if (currentAuthProvider == "google") {
+                                            scope.launch {
+                                                authRepository.logoutWithGoogle()
+                                            }
+                                        } else {
+                                            authRepository.logout()
+                                        }
+                                        currentScreen = "login"
+                                        currentUserName = ""
+                                        currentUserEmail = ""
+                                        currentUserId = ""
+                                        currentUserIdState = ""
+                                        currentAuthProvider = "local"
+                                        showPetSelection = false
+                                        tempUserId = ""
+                                        tempUserName = ""
+                                        loginViewModel.resetState()
+                                        localRegisterViewModel.resetState()
+                                    }
+                                )
+                            }
+
+                            "local_register" -> {
+                                LocalRegisterScreen(
+                                    viewModel = localRegisterViewModel,
+                                    onRegisterSuccess = { userId, userName ->
+                                        currentUserId = userId
+                                        currentUserIdState = userId
+                                        currentUserName = userName
+                                        currentUserEmail = ""
+                                        currentAuthProvider = "local"
+
+                                        // ✅ Verificar si necesita mascota después de registro
                                         scope.launch {
-                                            authRepository.logoutWithGoogle()
-                                        }
-                                    } else {
-                                        authRepository.logout()
-                                    }
-                                    currentScreen = "login"
-                                    currentUserName = ""
-                                    currentUserEmail = ""
-                                    currentUserId = ""
-                                    currentUserIdState = ""
-                                    currentAuthProvider = "local"
-                                    loginViewModel.resetState()
-                                    localRegisterViewModel.resetState()
-                                }
-                            )
-                        }
-
-                        "local_register" -> {
-                            LocalRegisterScreen(
-                                viewModel = localRegisterViewModel,
-                                onRegisterSuccess = { userId, userName ->
-                                    currentUserId = userId
-                                    currentUserIdState = userId
-                                    currentUserName = userName
-                                    currentUserEmail = ""
-                                    currentAuthProvider = "local"
-                                    currentScreen = "dashboard"
-                                },
-                                onNavigateBack = {
-                                    currentScreen = "login"
-                                    localRegisterViewModel.resetState()
-                                }
-                            )
-                        }
-
-                        else -> {
-                            LoginScreen(
-                                viewModel = loginViewModel,
-                                onLoginSuccess = { userId, userName, email, authProvider ->
-                                    currentUserId = userId
-                                    currentUserIdState = userId
-                                    currentUserName = userName
-                                    currentUserEmail = email
-                                    currentAuthProvider = authProvider
-                                    currentScreen = "dashboard"
-                                },
-                                onNavigateToLocalRegister = {
-                                    scope.launch {
-                                        val result = loginViewModel.checkAndHandleGuest()
-                                        when (result) {
-                                            is GuestCheckResult.Exists -> {
-                                                currentUserId = result.userId
-                                                currentUserIdState = result.userId
-                                                currentUserName = result.userName
-                                                currentUserEmail = ""
-                                                currentAuthProvider = "local"
+                                            val hasPet = app.storeRepository.hasUserAdoptedFirstPet(userId)
+                                            if (hasPet) {
                                                 currentScreen = "dashboard"
+                                            } else {
+                                                tempUserId = userId
+                                                tempUserName = userName
+                                                showPetSelection = true
                                             }
+                                        }
+                                    },
+                                    onNavigateBack = {
+                                        currentScreen = "login"
+                                        localRegisterViewModel.resetState()
+                                    }
+                                )
+                            }
 
-                                            GuestCheckResult.None -> {
-                                                currentScreen = "local_register"
-                                                loginViewModel.resetState()
+                            else -> {
+                                LoginScreen(
+                                    viewModel = loginViewModel,
+                                    onLoginSuccess = { userId, userName, email, authProvider ->
+                                        currentUserId = userId
+                                        currentUserIdState = userId
+                                        currentUserName = userName
+                                        currentUserEmail = email
+                                        currentAuthProvider = authProvider
+
+                                        // ✅ Verificar si necesita mascota después de login
+                                        scope.launch {
+                                            val hasPet = app.storeRepository.hasUserAdoptedFirstPet(userId)
+                                            if (hasPet) {
+                                                currentScreen = "dashboard"
+                                            } else {
+                                                tempUserId = userId
+                                                tempUserName = userName
+                                                showPetSelection = true
+                                            }
+                                        }
+                                    },
+                                    onNavigateToLocalRegister = {
+                                        scope.launch {
+                                            val result = loginViewModel.checkAndHandleGuest()
+                                            when (result) {
+                                                is GuestCheckResult.Exists -> {
+                                                    val userId = result.userId
+                                                    val userName = result.userName
+
+                                                    currentUserId = userId
+                                                    currentUserIdState = userId
+                                                    currentUserName = userName
+                                                    currentUserEmail = ""
+                                                    currentAuthProvider = "local"
+
+                                                    // ✅ Verificar si necesita mascota para invitado
+                                                    val hasPet = app.storeRepository.hasUserAdoptedFirstPet(userId)
+                                                    if (hasPet) {
+                                                        currentScreen = "dashboard"
+                                                    } else {
+                                                        tempUserId = userId
+                                                        tempUserName = userName
+                                                        showPetSelection = true
+                                                    }
+                                                }
+
+                                                GuestCheckResult.None -> {
+                                                    currentScreen = "local_register"
+                                                    loginViewModel.resetState()
+                                                }
                                             }
                                         }
                                     }
-                                }
-                            )
+                                )
+                            }
                         }
                     }
                 }

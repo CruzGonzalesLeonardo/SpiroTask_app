@@ -20,7 +20,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
@@ -57,6 +56,7 @@ fun ProductImage(assetPath: String?, modifier: Modifier = Modifier) {
 @Composable
 fun StoreScreen(
     viewModel: StoreViewModel,
+    monedas: Int,  // ✅ Nuevo parámetro para recibir las monedas
     onProductClick: (ProductEntity) -> Unit
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
@@ -69,7 +69,52 @@ fun StoreScreen(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        // Tab personalizadas más profesionales
+        // ✅ Header con título y monedas
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            color = MaterialTheme.colorScheme.surface,
+            shadowElevation = 4.dp
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Tienda",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold
+                )
+
+                // ✅ Tarjeta de monedas
+                Surface(
+                    shape = RoundedCornerShape(20.dp),
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    tonalElevation = 2.dp
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Text(
+                            text = "💰",
+                            fontSize = 20.sp
+                        )
+                        Text(
+                            text = monedas.toString(),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
+                }
+            }
+        }
+
+        // Tabs
         TabRow(
             selectedTabIndex = selectedTab,
             containerColor = MaterialTheme.colorScheme.surface,
@@ -104,7 +149,11 @@ fun StoreScreen(
             label = "StoreTransition"
         ) { targetTab ->
             when (targetTab) {
-                0 -> ProductGrid(products = products, onProductClick = onProductClick)
+                0 -> ProductGrid(
+                    products = products,
+                    monedas = monedas,  // ✅ Pasar monedas al grid
+                    onProductClick = onProductClick
+                )
                 1 -> CollectionGrid(
                     ownedProducts = ownedProducts.filter { it.type == "PET" },
                     activePetId = activePet?.idProduct,
@@ -144,7 +193,11 @@ fun StoreTab(selected: Boolean, text: String, icon: ImageVector, onClick: () -> 
 }
 
 @Composable
-fun ProductGrid(products: List<ProductEntity>, onProductClick: (ProductEntity) -> Unit) {
+fun ProductGrid(
+    products: List<ProductEntity>,
+    monedas: Int,  // ✅ Recibir monedas
+    onProductClick: (ProductEntity) -> Unit
+) {
     if (products.isEmpty()) {
         EmptyState(message = "La tienda está vacía por ahora...")
     } else {
@@ -155,21 +208,33 @@ fun ProductGrid(products: List<ProductEntity>, onProductClick: (ProductEntity) -
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             items(products) { product ->
-                ProductCard(product = product, onClick = { onProductClick(product) })
+                ProductCard(
+                    product = product,
+                    monedas = monedas,  // ✅ Pasar monedas a la tarjeta
+                    onClick = { onProductClick(product) }
+                )
             }
         }
     }
 }
 
 @Composable
-fun ProductCard(product: ProductEntity, onClick: () -> Unit) {
+fun ProductCard(
+    product: ProductEntity,
+    monedas: Int,  // ✅ Recibir monedas
+    onClick: () -> Unit
+) {
+    val canAfford = monedas >= product.price  // ✅ Verificar si puede comprar
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
             ProductImage(
@@ -178,23 +243,28 @@ fun ProductCard(product: ProductEntity, onClick: () -> Unit) {
                     .fillMaxWidth()
                     .height(120.dp)
             )
-            
+
             Spacer(modifier = Modifier.height(12.dp))
-            
+
             Text(
                 text = product.name,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 maxLines = 1
             )
-            
+
             Spacer(modifier = Modifier.height(4.dp))
-            
+
+            // ✅ Mostrar precio con indicador si no alcanza
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .background(
-                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
+                        if (canAfford) {
+                            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
+                        } else {
+                            MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.4f)
+                        },
                         CircleShape
                     )
                     .padding(horizontal = 8.dp, vertical = 4.dp)
@@ -202,12 +272,32 @@ fun ProductCard(product: ProductEntity, onClick: () -> Unit) {
                 Text(
                     text = "${product.price}",
                     style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.primary,
+                    color = if (canAfford) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        MaterialTheme.colorScheme.error
+                    },
                     fontWeight = FontWeight.ExtraBold
                 )
                 Text(
                     text = " 💰",
-                    style = MaterialTheme.typography.labelLarge
+                    style = MaterialTheme.typography.labelLarge,
+                    color = if (canAfford) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        MaterialTheme.colorScheme.error
+                    }
+                )
+            }
+
+            // ✅ Mostrar indicador si no alcanza
+            if (!canAfford) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "❌ No te alcanza",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.error,
+                    fontSize = 10.sp
                 )
             }
         }
@@ -272,9 +362,9 @@ fun CollectionPetCard(product: ProductEntity, isActive: Boolean, onActivate: () 
                     }
                 }
             }
-            
+
             Spacer(modifier = Modifier.height(12.dp))
-            
+
             Text(
                 text = product.name,
                 style = MaterialTheme.typography.titleMedium,
@@ -282,9 +372,9 @@ fun CollectionPetCard(product: ProductEntity, isActive: Boolean, onActivate: () 
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth()
             )
-            
+
             Spacer(modifier = Modifier.height(8.dp))
-            
+
             Button(
                 onClick = onActivate,
                 modifier = Modifier.fillMaxWidth(),

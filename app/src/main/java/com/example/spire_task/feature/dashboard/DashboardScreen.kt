@@ -35,22 +35,29 @@ fun DashboardScreen(
     userEmail: String,
     userId: String,
     authProvider: String = "local",
-    level: Int = 1,
-    xp: Float = 0f,
-    monedas: Int = 0,
-    racha: Int = 0,
     onLogout: () -> Unit
 ) {
     var selectedTab by remember { mutableStateOf(0) }
     var mostrarDialogoCrearRapida by remember { mutableStateOf(false) }
-    
+
     // Navegación interna para sub-pantallas
     var currentSubScreen by remember { mutableStateOf<String?>(null) }
     var selectedProduct by remember { mutableStateOf<ProductEntity?>(null) }
 
     val context = LocalContext.current
     val database = remember { SpiroDatabase.getDatabase(context) }
-    
+
+    // ✅ OBSERVAR DATOS EN TIEMPO REAL
+    val perfilFlow by database.profileDao().observeProfile(userId).collectAsState(initial = null)
+    val monedasFlow by database.profileDao().observeMonedas(userId).collectAsState(initial = 0)
+    val rachaFlow by database.profileDao().observeRacha(userId).collectAsState(initial = 0)
+
+    // ✅ Extraer valores del Flow
+    val level = perfilFlow?.level ?: 1
+    val xp = perfilFlow?.xpTotal ?: 0f
+    val monedas = monedasFlow ?: 0
+    val racha = rachaFlow ?: 0
+
     // Repositorios
     val authRepo = remember { AuthRepository(context) }
     val storeRepo = remember { StoreRepository(database.storeDao(), database.profileDao()) }
@@ -61,7 +68,7 @@ fun DashboardScreen(
         key = userId,
         factory = KanbanViewModelFactory.createFactory(userId)
     )
-    
+
     val profileViewModel: ProfileViewModel = viewModel(
         key = "profile_$userId",
         factory = ProfileViewModelFactory(authRepo, storeRepo, userId)
@@ -131,6 +138,7 @@ fun DashboardScreen(
                     )
                     2 -> StoreScreen(
                         viewModel = storeViewModel,
+                        monedas = monedas,
                         onProductClick = {
                             selectedProduct = it
                             currentSubScreen = "product_detail"
@@ -155,16 +163,14 @@ fun DashboardScreen(
 
     // Diálogo para crear tarea rápida desde Home
     if (mostrarDialogoCrearRapida) {
-        // Aquí puedes reutilizar tu CreateTaskDialog
-        // O abrir el Kanban directamente
-        androidx.compose.material3.AlertDialog(
+        AlertDialog(
             onDismissRequest = { mostrarDialogoCrearRapida = false },
             title = { Text("Crear tarea rápida") },
             text = { Text("Ve a la pestaña Kanban para crear tu tarea") },
             confirmButton = {
                 TextButton(onClick = {
                     mostrarDialogoCrearRapida = false
-                    selectedTab = 1  // Ir a Kanban
+                    selectedTab = 1
                 }) {
                     Text("Ir a Kanban")
                 }

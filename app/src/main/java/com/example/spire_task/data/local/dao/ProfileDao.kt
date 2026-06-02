@@ -51,4 +51,19 @@ interface ProfileDao {
 
     @Query("SELECT * FROM tblPerfiles WHERE authProvider = 'local' LIMIT 1")
     suspend fun obtenerUsuarioInvitado(): ProfileEntity?
+
+    @Query("SELECT racha FROM tblPerfiles WHERE idUser = :userId")
+    suspend fun obtenerRacha(userId: String): Int?
+
+    @Query("SELECT monedas FROM tblPerfiles WHERE idUser = :userId")
+    suspend fun obtenerMonedas(userId: String): Int?
+
+    @Query("SELECT monedas FROM tblPerfiles WHERE idUser = :userId")
+    fun observeMonedas(userId: String): Flow<Int?>
+
+    @Query("SELECT racha FROM tblPerfiles WHERE idUser = :userId")
+    fun observeRacha(userId: String): Flow<Int?>
+
+    @Query("SELECT * FROM tblPerfiles WHERE idUser = :userId")
+    fun observeProfile(userId: String): Flow<ProfileEntity?>
 }
