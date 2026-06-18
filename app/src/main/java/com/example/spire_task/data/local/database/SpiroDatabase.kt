@@ -4,59 +4,65 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import com.example.spire_task.data.local.dao.ColumnDao
-import com.example.spire_task.data.local.dao.ProfileDao
-import com.example.spire_task.data.local.dao.SettingsDao
-import com.example.spire_task.data.local.dao.StoreDao
-import com.example.spire_task.data.local.dao.TaskDao
-import com.example.spire_task.data.local.entities.ColumnEntity
-import com.example.spire_task.data.local.entities.ProductEntity
-import com.example.spire_task.data.local.entities.ProfileEntity
-import com.example.spire_task.data.local.entities.PurchaseEntity
-import com.example.spire_task.data.local.entities.SettingsEntity
-import com.example.spire_task.data.local.entities.SubTaskEntity
-import com.example.spire_task.data.local.entities.TaskEntity
-import com.example.spire_task.data.local.entities.TaskHistoryEntity
+import androidx.sqlite.db.SupportSQLiteDatabase
+import com.example.spire_task.data.local.entidades.*
+import com.example.spire_task.data.local.daos.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 @Database(
     entities = [
-        ProfileEntity::class,
-        TaskEntity::class,
-        SubTaskEntity::class,
-        ColumnEntity::class,
-        TaskHistoryEntity::class,
-        ProductEntity::class,
-        PurchaseEntity::class,
-        SettingsEntity::class
+        PerfilUsuarioEntity::class,
+        MascotaBaseEntity::class,
+        MascotaUsuarioEntity::class,
+        TableroEntity::class,
+        TareaEntity::class,
+        SubtareaEntity::class
     ],
-    version = 2,  // ✅ Incrementado a 2 para reflejar los nuevos cambios de esquema
+    version = 1,
     exportSchema = false
 )
 abstract class SpiroDatabase : RoomDatabase() {
 
-    abstract fun profileDao(): ProfileDao
-    abstract fun taskDao(): TaskDao
-    abstract fun columnDao(): ColumnDao
-    abstract fun storeDao(): StoreDao
-    abstract fun settingsDao(): SettingsDao
+    abstract fun perfilUsuarioDao(): PerfilUsuarioDao
+    abstract fun mascotaBaseDao(): MascotaBaseDao
+    abstract fun mascotaUsuarioDao(): MascotaUsuarioDao
+    abstract fun tableroDao(): TableroDao
+    abstract fun tareaDao(): TareaDao
+    abstract fun subtareaDao(): SubtareaDao
 
     companion object {
         @Volatile
         private var INSTANCE: SpiroDatabase? = null
 
-        fun getDatabase(context: Context): SpiroDatabase {
+        fun getInstance(context: Context): SpiroDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     SpiroDatabase::class.java,
-                    "spire_task.db"
+                    "spiro_task_db"
                 )
-                    // ⚠️ SOLO PARA DESARROLLO: Destruye y recrea la DB si hay cambios
+                    .addCallback(PrecargaCallback())
                     .fallbackToDestructiveMigration()
                     .build()
-
                 INSTANCE = instance
                 instance
+            }
+        }
+
+        private class PrecargaCallback : Callback() {
+            override fun onCreate(db: SupportSQLiteDatabase) {
+                super.onCreate(db)
+                INSTANCE?.let { database ->
+                    CoroutineScope(Dispatchers.IO).launch {
+                        precargarDatos(database)
+                    }
+                }
+            }
+
+            private suspend fun precargarDatos(database: SpiroDatabase) {
+                database.mascotaBaseDao().insertarTodas(DatosIniciales.mascotasBase)
             }
         }
     }

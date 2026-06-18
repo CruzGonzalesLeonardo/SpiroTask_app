@@ -39,6 +39,13 @@ android {
     buildFeatures {
         compose = true
     }
+    sourceSets {
+        getByName("main") {
+            assets {
+                srcDirs("src\\main\\assets", "src\\main\\assets")
+            }
+        }
+    }
 }
 
 dependencies {
@@ -51,6 +58,9 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.foundation)
+    implementation(libs.androidx.navigation.runtime.ktx)
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.material3)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -61,25 +71,35 @@ dependencies {
 
     implementation("androidx.compose.material:material-icons-extended:1.7.5")
 
+    // Room
     implementation("androidx.room:room-runtime:2.8.4")
     implementation("androidx.room:room-ktx:2.8.4")
     ksp("androidx.room:room-compiler:2.8.4")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.4")
 
+    // DataStore
     implementation("androidx.datastore:datastore-preferences:1.1.0")
 
-    // Firebase BoM (Bill of Materials) - maneja las versiones automáticamente
-    implementation(platform("com.google.firebase:firebase-bom:34.13.0"))
+    // ✅ Firebase - UNA SOLA BoM (usa la más reciente)
+    implementation(platform("com.google.firebase:firebase-bom:33.10.0"))  // Versión más reciente
 
-    // Firebase Authentication
-    implementation("com.google.firebase:firebase-auth")
+    // Firebase Authentication (sin versión, la BoM la maneja)
+    implementation("com.google.firebase:firebase-auth-ktx")  // Agrega -ktx
 
-    // Google Play Services Auth (para Google Sign-In)
+    // Firebase Realtime Database
+    implementation("com.google.firebase:firebase-database-ktx")
+
+    // Google Play Services Auth
     implementation("com.google.android.gms:play-services-auth:21.3.0")
 
+    // Lifecycle ViewModel Compose
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
 
-    // Coil for SVG support
+    // Coroutines para Firebase
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+
+    // Coil for images
     implementation(libs.coil.compose)
     implementation(libs.coil.svg)
 }
