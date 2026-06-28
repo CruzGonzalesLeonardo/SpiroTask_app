@@ -11,6 +11,16 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.Dashboard
+import androidx.compose.material.icons.outlined.DeleteOutline
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.ColorLens
+import androidx.compose.material.icons.rounded.Dashboard
+//import androidx.compose.material.icons.rounded.DashboardCustomization
+import androidx.compose.material.icons.rounded.KeyboardArrowRight
+import androidx.compose.material.icons.rounded.Pets
+import androidx.compose.material.icons.rounded.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -19,7 +29,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -50,59 +59,89 @@ fun BoardsListScreen(
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
             }
-        } else if (uiState.tablerosConTareas.isEmpty()) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        } else {
+            Column(modifier = Modifier.fillMaxSize()) {
+                // ─── ENCABEZADO DE LA VISTA PRINCIPAL ───────────────────
                 Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.padding(32.dp)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 12.dp)
                 ) {
-                    Surface(
-                        modifier = Modifier.size(100.dp),
-                        shape = CircleShape,
-                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
-                    ) {
-                        Box(contentAlignment = Alignment.Center) { Text("📋", fontSize = 48.sp) }
-                    }
-                    Spacer(modifier = Modifier.height(20.dp))
                     Text(
-                        "Sin tableros aún",
-                        style = MaterialTheme.typography.titleLarge,
+                        text = "Mis Tableros",
+                        style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onBackground
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        "Toca el botón + para crear uno",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center
+                        text = "Gestiona tus proyectos y asignaturas",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                     )
-                    Spacer(modifier = Modifier.height(24.dp))
-                    Button(
-                        onClick = { viewModel.toggleDialogoCrear(true) },
-                        shape = RoundedCornerShape(16.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
-                    ) {
-                        Icon(Icons.Default.Add, null, modifier = Modifier.size(20.dp))
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Crear tablero", fontWeight = FontWeight.Bold)
-                    }
                 }
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-                contentPadding = PaddingValues(top = 12.dp, bottom = 80.dp)
-            ) {
-                items(uiState.tablerosConTareas, key = { it.tablero.id_tablero }) { tct ->
-                    TableroCard(
-                        tablero = tct.tablero,
-                        totalTareas = tct.totalTareas,
-                        tareasCompletadas = tct.tareasCompletadas,
-                        onClick = { onTableroClick(tct.tablero.id_tablero) },
-                        onEliminar = { viewModel.mostrarConfirmacionEliminar(tct.tablero) }
-                    )
+
+                if (uiState.tablerosConTareas.isEmpty()) {
+                    Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.padding(32.dp)
+                        ) {
+                            Surface(
+                                modifier = Modifier.size(90.dp),
+                                shape = CircleShape,
+                                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.Dashboard,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(40.dp)
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(20.dp))
+                            Text(
+                                "Sin tableros aún",
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onBackground
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                "Toca el botón inferior para crear tu primer tablero guiado por una mascota.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Center
+                            )
+                            Spacer(modifier = Modifier.height(24.dp))
+                            Button(
+                                onClick = { viewModel.toggleDialogoCrear(true) },
+                                shape = RoundedCornerShape(16.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                            ) {
+                                Icon(Icons.Rounded.Add, null, modifier = Modifier.size(20.dp))
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("Crear tablero", fontWeight = FontWeight.Bold)
+                            }
+                        }
+                    }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.weight(1f).fillMaxWidth().padding(horizontal = 16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                        contentPadding = PaddingValues(top = 4.dp, bottom = 88.dp)
+                    ) {
+                        items(uiState.tablerosConTareas, key = { it.tablero.id_tablero }) { tct ->
+                            TableroCard(
+                                tablero = tct.tablero,
+                                totalTareas = tct.totalTareas,
+                                tareasCompletadas = tct.tareasCompletadas,
+                                onClick = { onTableroClick(tct.tablero.id_tablero) },
+                                onEliminar = { viewModel.mostrarConfirmacionEliminar(tct.tablero) }
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -111,11 +150,12 @@ fun BoardsListScreen(
             onClick = { viewModel.toggleDialogoCrear(true) },
             containerColor = MaterialTheme.colorScheme.primary,
             contentColor = MaterialTheme.colorScheme.onPrimary,
+            shape = RoundedCornerShape(16.dp),
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(16.dp)
+                .padding(20.dp)
         ) {
-            Icon(Icons.Default.Add, "Crear tablero", modifier = Modifier.size(28.dp))
+            Icon(Icons.Rounded.Add, "Crear tablero", modifier = Modifier.size(28.dp))
         }
     }
 
@@ -150,15 +190,19 @@ private fun TableroCard(
     val completado = totalTareas > 0 && tareasCompletadas == totalTareas
 
     Card(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
-        shape = RoundedCornerShape(16.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
             Box(
                 modifier = Modifier
-                    .width(5.dp).height(55.dp).clip(RoundedCornerShape(3.dp))
+                    .width(5.dp)
+                    .height(55.dp)
+                    .clip(RoundedCornerShape(3.dp))
                     .background(Brush.verticalGradient(listOf(colorTablero, colorTablero.copy(alpha = 0.6f))))
             )
             Spacer(modifier = Modifier.width(14.dp))
@@ -166,33 +210,37 @@ private fun TableroCard(
                 Text(tablero.nombre, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Spacer(modifier = Modifier.height(6.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Surface(shape = RoundedCornerShape(6.dp), color = if (completado) Color(0xFF6BCB77).copy(alpha = 0.15f) else colorTablero.copy(alpha = 0.12f)) {
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = if (completado) Color(0xFF6BCB77).copy(alpha = 0.15f) else colorTablero.copy(alpha = 0.12f)
+                    ) {
                         Row(modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.CheckCircle, null, modifier = Modifier.size(13.dp), tint = if (completado) Color(0xFF6BCB77) else colorTablero)
-                            Spacer(modifier = Modifier.width(4.dp))
+                            Icon(
+                                imageVector = Icons.Rounded.CheckCircle,
+                                contentDescription = null,
+                                modifier = Modifier.size(14.dp),
+                                tint = if (completado) Color(0xFF6BCB77) else colorTablero
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
                             Text("$tareasCompletadas/$totalTareas tareas", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold, color = if (completado) Color(0xFF6BCB77) else colorTablero)
                         }
                     }
                 }
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(6.dp))
                 Text(formatearFecha(tablero.fecha_creacion), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f))
             }
             MascotaMentoraAvatar(mascotaId = tablero.id_mascota_mentora)
             Spacer(modifier = Modifier.width(4.dp))
-            IconButton(onClick = onEliminar, modifier = Modifier.size(34.dp)) {
-                Icon(Icons.Default.DeleteOutline, "Eliminar", tint = MaterialTheme.colorScheme.error.copy(alpha = 0.5f), modifier = Modifier.size(18.dp))
+            IconButton(onClick = onEliminar, modifier = Modifier.size(36.dp)) {
+                Icon(Icons.Outlined.DeleteOutline, "Eliminar", tint = MaterialTheme.colorScheme.error.copy(alpha = 0.6f), modifier = Modifier.size(20.dp))
             }
         }
     }
 }
 
-/**
- * ✅ MODIFICADO: Avatar que carga la imagen base de la mascota
- */
 @Composable
 private fun MascotaMentoraAvatar(mascotaId: Int) {
     var rutaAsset by remember { mutableStateOf<String?>(null) }
-    var emoji by remember { mutableStateOf("🐾") }
     var estaCargando by remember { mutableStateOf(true) }
 
     LaunchedEffect(mascotaId) {
@@ -202,8 +250,7 @@ private fun MascotaMentoraAvatar(mascotaId: Int) {
             if (mascota != null) {
                 val base = db.mascotaBaseDao().obtenerPorId(mascota.id_mascota_base)
                 rutaAsset = base?.ruta_asset_base
-                emoji = base?.emoji ?: "🐾"
-                Log.d("SPIRO_DEBUG", "✅ Avatar mascota: ruta=$rutaAsset, emoji=$emoji")
+                Log.d("SPIRO_DEBUG", "✅ Avatar mascota: ruta=$rutaAsset")
             }
             estaCargando = false
         } catch (e: Exception) {
@@ -215,19 +262,18 @@ private fun MascotaMentoraAvatar(mascotaId: Int) {
     Surface(
         modifier = Modifier.size(42.dp),
         shape = CircleShape,
-        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
     ) {
         Box(contentAlignment = Alignment.Center) {
             when {
                 estaCargando -> {
                     CircularProgressIndicator(
-                        modifier = Modifier.size(20.dp),
+                        modifier = Modifier.size(18.dp),
                         strokeWidth = 2.dp,
                         color = MaterialTheme.colorScheme.primary
                     )
                 }
                 rutaAsset != null -> {
-                    // ✅ Cargar imagen real de la mascota desde assets
                     SubcomposeAsyncImage(
                         model = "file:///android_asset/$rutaAsset",
                         contentDescription = "Mascota mentora",
@@ -237,19 +283,16 @@ private fun MascotaMentoraAvatar(mascotaId: Int) {
                         contentScale = ContentScale.Crop,
                         loading = {
                             Box(contentAlignment = Alignment.Center) {
-                                CircularProgressIndicator(modifier = Modifier.size(20.dp))
+                                CircularProgressIndicator(modifier = Modifier.size(18.dp))
                             }
                         },
                         error = {
-                            Box(contentAlignment = Alignment.Center) {
-                                Text(emoji, fontSize = 22.sp)
-                            }
+                            Icon(Icons.Rounded.Pets, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
                         }
                     )
                 }
                 else -> {
-                    // Fallback: emoji
-                    Text(emoji, fontSize = 22.sp)
+                    Icon(Icons.Rounded.Pets, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
                 }
             }
         }
@@ -269,98 +312,128 @@ private fun DialogoCrearTablero(
 
     AlertDialog(
         onDismissRequest = onCancelar,
-        shape = RoundedCornerShape(24.dp),
-        title = { Text("Nuevo Tablero", fontWeight = FontWeight.Bold) },
+        shape = RoundedCornerShape(28.dp),
+        icon = {
+            Icon(
+                imageVector = Icons.Rounded.Dashboard,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(36.dp)
+            )
+        },
+        title = {
+            Text(
+                "Nuevo Tablero",
+                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.titleLarge,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+        },
         text = {
-            Column {
+            Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
                 OutlinedTextField(
                     value = nombre,
                     onValueChange = { nombre = it; error = null },
-                    label = { Text("Nombre") },
-                    placeholder = { Text("Ej: Cálculo II") },
+                    label = { Text("Nombre del tablero") },
+                    placeholder = { Text("Ej: Proyecto Alfa o Historia") },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(14.dp),
+                    shape = RoundedCornerShape(16.dp),
                     isError = error != null,
                     supportingText = { error?.let { Text(it, color = MaterialTheme.colorScheme.error) } }
                 )
-                Spacer(modifier = Modifier.height(12.dp))
-                Text("Color del tablero", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
-                Spacer(modifier = Modifier.height(6.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    coloresTablero.forEach { hex ->
-                        val c = try { Color(android.graphics.Color.parseColor(hex)) } catch (_: Exception) { Color.Gray }
-                        val sel = colorSel == hex
-                        Box(
-                            modifier = Modifier.size(if (sel) 36.dp else 30.dp)
-                                .clip(CircleShape)
-                                .background(c)
-                                .clickable { colorSel = hex },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            if (sel) Icon(Icons.Default.Check, null, tint = Color.White, modifier = Modifier.size(16.dp))
+
+                Column {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Icon(Icons.Rounded.ColorLens, null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
+                        Text("Tema de color", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        coloresTablero.forEach { hex ->
+                            val c = try { Color(android.graphics.Color.parseColor(hex)) } catch (_: Exception) { Color.Gray }
+                            val sel = colorSel == hex
+                            Box(
+                                modifier = Modifier
+                                    .size(32.dp)
+                                    .clip(CircleShape)
+                                    .background(c)
+                                    .clickable { colorSel = hex },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                if (sel) Icon(Icons.Default.Check, null, tint = Color.White, modifier = Modifier.size(16.dp))
+                            }
                         }
                     }
                 }
-                Spacer(modifier = Modifier.height(12.dp))
-                Text("🐾 Mascota mentora", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
-                Spacer(modifier = Modifier.height(6.dp))
-                if (mascotasCompletas.isEmpty()) {
-                    Text("No tienes mascotas", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
-                } else {
-                    mascotasCompletas.forEach { mc ->
-                        val sel = mascotaSel == mc.mascotaUsuario.id_mascota_usuario
-                        Surface(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 2.dp)
-                                .clickable { mascotaSel = mc.mascotaUsuario.id_mascota_usuario },
-                            shape = RoundedCornerShape(12.dp),
-                            color = if (sel) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f) else MaterialTheme.colorScheme.surface,
-                            border = if (sel) BorderStroke(2.dp, MaterialTheme.colorScheme.primary) else BorderStroke(1.dp, MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(10.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                RadioButton(selected = sel, onClick = { mascotaSel = mc.mascotaUsuario.id_mascota_usuario })
-                                Spacer(modifier = Modifier.width(6.dp))
 
-                                // ✅ Avatar con imagen real en el diálogo
+                Column {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Icon(Icons.Rounded.Pets, null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
+                        Text("Asignar Mascota Mentora", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    if (mascotasCompletas.isEmpty()) {
+                        Text("No tienes mascotas disponibles", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                    } else {
+                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            mascotasCompletas.forEach { mc ->
+                                val sel = mascotaSel == mc.mascotaUsuario.id_mascota_usuario
                                 Surface(
-                                    modifier = Modifier.size(36.dp),
-                                    shape = CircleShape,
-                                    color = MaterialTheme.colorScheme.primaryContainer
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable { mascotaSel = mc.mascotaUsuario.id_mascota_usuario },
+                                    shape = RoundedCornerShape(16.dp),
+                                    color = if (sel) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.25f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                                    border = if (sel) BorderStroke(2.dp, MaterialTheme.colorScheme.primary) else null
                                 ) {
-                                    Box(contentAlignment = Alignment.Center) {
-                                        if (mc.rutaAsset != null) {
-                                            SubcomposeAsyncImage(
-                                                model = "file:///android_asset/${mc.rutaAsset}",
-                                                contentDescription = mc.nombreEspecie,
-                                                modifier = Modifier
-                                                    .fillMaxSize()
-                                                    .clip(CircleShape),
-                                                contentScale = ContentScale.Crop,
-                                                error = { Text(mc.emoji, fontSize = 18.sp) }
-                                            )
-                                        } else {
-                                            Text(mc.emoji, fontSize = 18.sp)
+                                    Row(
+                                        modifier = Modifier.padding(12.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Surface(
+                                            modifier = Modifier.size(38.dp),
+                                            shape = CircleShape,
+                                            color = MaterialTheme.colorScheme.surface
+                                        ) {
+                                            Box(contentAlignment = Alignment.Center) {
+                                                if (mc.rutaAsset != null) {
+                                                    SubcomposeAsyncImage(
+                                                        model = "file:///android_asset/${mc.rutaAsset}",
+                                                        contentDescription = mc.nombreEspecie,
+                                                        modifier = Modifier
+                                                            .fillMaxSize()
+                                                            .clip(CircleShape),
+                                                        contentScale = ContentScale.Crop,
+                                                        error = { Icon(Icons.Rounded.Pets, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp)) }
+                                                    )
+                                                } else {
+                                                    Icon(Icons.Rounded.Pets, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
+                                                }
+                                            }
                                         }
-                                    }
-                                }
 
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(mc.nombreEspecie, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
-                                    Text("Nv.${mc.mascotaUsuario.nivel}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                }
-                                if (sel) {
-                                    Icon(
-                                        Icons.Default.CheckCircle,
-                                        null,
-                                        tint = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.size(18.dp)
-                                    )
+                                        Spacer(modifier = Modifier.width(12.dp))
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text(mc.nombreEspecie, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+                                            Text("Nivel ${mc.mascotaUsuario.nivel}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                        }
+                                        RadioButton(
+                                            selected = sel,
+                                            onClick = { mascotaSel = mc.mascotaUsuario.id_mascota_usuario },
+                                            colors = RadioButtonDefaults.colors(selectedColor = MaterialTheme.colorScheme.primary)
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -379,7 +452,7 @@ private fun DialogoCrearTablero(
                 },
                 shape = RoundedCornerShape(14.dp)
             ) {
-                Text("Crear", fontWeight = FontWeight.Bold)
+                Text("Crear Tablero", fontWeight = FontWeight.Bold)
             }
         },
         dismissButton = {
@@ -407,16 +480,16 @@ private fun DialogoEliminarTablero(
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Icon(
-                        Icons.Default.Warning,
-                        null,
+                        imageVector = Icons.Rounded.Warning,
+                        contentDescription = null,
                         tint = MaterialTheme.colorScheme.error,
                         modifier = Modifier.size(26.dp)
                     )
                 }
             }
         },
-        title = { Text("Eliminar tablero", fontWeight = FontWeight.Bold) },
-        text = { Text("¿Eliminar \"$nombreTablero\"?\nSe borrarán todas sus tareas.") },
+        title = { Text("¿Eliminar tablero?", fontWeight = FontWeight.Bold) },
+        text = { Text("Se borrará permanentemente \"$nombreTablero\" junto con todas las tareas asociadas a él.") },
         confirmButton = {
             Button(
                 onClick = onConfirmar,

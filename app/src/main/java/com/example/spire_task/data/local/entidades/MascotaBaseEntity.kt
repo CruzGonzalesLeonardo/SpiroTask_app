@@ -17,7 +17,8 @@ data class MascotaBaseEntity(
     val precio_monedas: Int,
     val ruta_asset_base: String,
     val ruta_asset_habitad: String? = null,
-    val ruta_asset_evolucion: String? = null,
+    val ruta_asset_triste: String? = null,         // NUEVO: Imagen para cuando baje la felicidad
+    val ruta_asset_like: String? = null,
 
     // HABILIDAD ÚNICA DE LA MASCOTA
     val habilidad_nombre: String,           // Ej: "Sabiduría del Búho"
@@ -27,5 +28,9 @@ data class MascotaBaseEntity(
 
     // SISTEMA DE FELICIDAD
     val felicidad_base: Int = 100,
-    val decremento_felicidad_diario: Int = 5
+    val decremento_felicidad_diario: Int = 5,
+
+    // SISTEMA DE GAMIFICACIÓN POR ROMPECABEZAS
+    val rompecabezas_actuales: Int = 0,
+    val rompecabezas_totales: Int = 10
 )

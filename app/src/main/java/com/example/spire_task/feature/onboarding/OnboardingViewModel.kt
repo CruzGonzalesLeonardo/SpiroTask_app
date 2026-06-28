@@ -14,6 +14,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 data class OnboardingUiState(
@@ -112,41 +113,54 @@ class OnboardingViewModel(
         viewModelScope.launch {
             try {
                 Log.d("ONBOARDING", "✅ Confirmando mascota: ${mascota.nombre_especie}")
-                _uiState.value = _uiState.value.copy(estaCargando = true)
+                _uiState.update { it.copy(estaCargando = true) }
 
                 val nombre = _uiState.value.nombre.trim()
                 val precioMascota = mascota.precio_monedas
                 val monedasFinales = DatosIniciales.MONEDAS_INICIALES - precioMascota
 
+                // 1. Insertar o Actualizar Perfil de Usuario
                 val perfil = PerfilUsuarioEntity(
                     nombre = nombre,
                     monedas = monedasFinales
                 )
                 database.perfilUsuarioDao().insertarOActualizar(perfil)
 
+                // 2. Insertar la nueva Mascota en el inventario del usuario
                 val nuevaMascota = MascotaUsuarioEntity(
                     id_mascota_base = mascota.id_mascota_base,
-                    nombre_personalizado = mascota.nombre_especie,  // ✅ Agrega el nombre
+                    nombre_personalizado = mascota.nombre_especie,
                     nivel = 1,
                     experiencia = 0,
                     esta_activa = true,
                     fecha_obtencion = System.currentTimeMillis(),
-                    felicidad_actual = mascota.felicidad_base,  // ✅ Usa la felicidad base de la especie
+                    felicidad_actual = 100, // Inicia al máximo de felicidad (100)
                     ultima_interaccion = System.currentTimeMillis()
                 )
                 database.mascotaUsuarioDao().insertar(nuevaMascota)
 
-                Log.d("ONBOARDING", "🎉 Onboarding completado con mascota")
-                _uiState.value = _uiState.value.copy(
-                    estaCargando = false,
-                    onboardingCompletado = true
+                // 🔥 3. NUEVO: Actualizar las piezas en el catálogo base de la mascota a 10 de 10
+                // Esto evita que aparezca con 0/10 en la tienda o ruleta
+                database.mascotaBaseDao().actualizarProgresoRompecabezas(
+                    id = mascota.id_mascota_base,
+                    nuevosFragmentos = 10
                 )
+
+                Log.d("ONBOARDING", "🎉 Onboarding completado: Mascota guardada y rompecabezas sincronizado a 10/10")
+                _uiState.update {
+                    it.copy(
+                        estaCargando = false,
+                        onboardingCompletado = true
+                    )
+                }
             } catch (e: Exception) {
                 Log.e("ONBOARDING", "❌ Error al crear perfil: ${e.message}")
-                _uiState.value = _uiState.value.copy(
-                    estaCargando = false,
-                    error = "Error al crear perfil: ${e.message}"
-                )
+                _uiState.update {
+                    it.copy(
+                        estaCargando = false,
+                        error = "Error al crear perfil: ${e.message}"
+                    )
+                }
             }
         }
     }

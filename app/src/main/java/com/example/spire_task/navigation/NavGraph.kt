@@ -5,7 +5,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.spire_task.feature.home.HomeScreen
+import com.example.spire_task.feature.home.SpiroMainContainer
 import com.example.spire_task.feature.onboarding.OnboardingScreen
 import com.example.spire_task.feature.splash.SplashScreen
 
@@ -65,7 +65,15 @@ fun SpiroNavGraph(
 
         // ─── HOME ────────────────────────────────────
         composable(Rutas.HOME) {
-            HomeScreen()
+            // ✅ CORREGIDO: Ahora llama al contenedor que hereda la barra inferior
+            SpiroMainContainer(
+                onSesionCerrada = {
+                    // Si el usuario cierra sesión desde los ajustes, lo mandas al Onboarding o Splash
+                    navController.navigate(Rutas.ONBOARDING) {
+                        popUpTo(Rutas.HOME) { inclusive = true }
+                    }
+                }
+            )
         }
     }
 }

@@ -10,5 +10,6 @@ data class RecompensaTarea(
     val monedasFinal: Int,
     val multiplicadorXp: Float,
     val multiplicadorMonedas: Float,
-    val bonosAplicados: List<String>
+    val bonosAplicados: List<String>,
+    val incrementoFelicidad: Int = 0
 )

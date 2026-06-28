@@ -6,7 +6,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -15,11 +16,25 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.spire_task.SpiroTaskApplication
+import com.example.spire_task.data.local.database.SpiroDatabase
 import com.example.spire_task.data.local.entidades.TareaEntity
+import com.example.spire_task.feature.kanban.components.DialogoConfirmarAvanzar
+import com.example.spire_task.feature.kanban.components.DialogoConfirmarRetroceder
+import com.example.spire_task.feature.kanban.components.DialogoCrearTarea
+import com.example.spire_task.feature.kanban.components.DialogoRecompensa
+import com.example.spire_task.feature.kanban.components.EstadoVacioKanban
+import com.example.spire_task.feature.kanban.components.KanbanHeader
+import com.example.spire_task.feature.kanban.components.LimitesBar
+import com.example.spire_task.feature.kanban.components.TareaKanbanCard
 import com.example.spire_task.feature.taskdetail.TaskDetailScreen
-import com.example.spire_task.feature.taskdetail.TaskDetailUiState
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.*
+import java.util.concurrent.TimeUnit
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,6 +54,17 @@ fun KanbanScreen(
     if (tareaSeleccionadaId != null) {
         TaskDetailScreen(tareaId = tareaSeleccionadaId!!, onVolver = { tareaSeleccionadaId = null })
         return
+    }
+
+    // 🐢 LÓGICA DE CONDICIONAL PARA LA HABILIDAD DE LA TORTUGA
+    // Si la especie es una tortuga (validando por nombre o por su emoji característico), expandimos el límite
+    val limiteEnProgresoDinamico = if (
+        uiState.mascotaMentora?.nombreEspecie?.contains("Tortuga", ignoreCase = true) == true ||
+        uiState.mascotaMentora?.emoji == "🐢"
+    ) {
+        uiState.limiteEnProgreso + 2 // Aumenta +2 la capacidad si es la tortuga
+    } else {
+        uiState.limiteEnProgreso
     }
 
     val colorFondo = try {
@@ -70,6 +96,7 @@ fun KanbanScreen(
                 felicidad = uiState.felicidadMascota
             )
 
+            // ✅ MODIFICADO: Ahora los chips reciben los límites usando la variable calculada dinámicamente
             KanbanFilterChips(
                 filtroActivo = uiState.filtroActivo,
                 onFiltroChange = viewModel::cambiarFiltro,
@@ -77,13 +104,17 @@ fun KanbanScreen(
                     "POR_HACER" to uiState.tareasPorHacer.size,
                     "EN_PROGRESO" to uiState.tareasEnProgreso.size,
                     "FINALIZADO" to uiState.tareasFinalizadas.size
+                ),
+                limites = mapOf(
+                    "POR_HACER" to uiState.limitePorHacer,
+                    "EN_PROGRESO" to limiteEnProgresoDinamico // 🟢 Cambiado aquí
                 )
             )
 
             LimitesBar(
                 limitePorHacer = uiState.limitePorHacer,
                 actualPorHacer = uiState.tareasPorHacer.size,
-                limiteEnProgreso = uiState.limiteEnProgreso,
+                limiteEnProgreso = limiteEnProgresoDinamico, // 🟢 Cambiado aquí
                 actualEnProgreso = uiState.tareasEnProgreso.size
             )
 
@@ -94,7 +125,7 @@ fun KanbanScreen(
                     shape = RoundedCornerShape(10.dp)
                 ) {
                     Row(modifier = Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.Warning, null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(18.dp))
+                        Icon(Icons.Rounded.Warning, null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(8.dp))
                         Text(error, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onErrorContainer)
                     }
@@ -125,14 +156,12 @@ fun KanbanScreen(
                         items(tareasMostradas, key = { it.id_tarea }) { tarea ->
                             TareaKanbanCard(
                                 tarea = tarea,
-                                subtareas = uiState.subtareasPorTarea[tarea.id_tarea] ?: emptyList(),
                                 onClick = { tareaSeleccionadaId = tarea.id_tarea },
                                 onAvanzar = { tareaAAvanzar = tarea },
                                 onRetroceder = if (tarea.estado != "POR_HACER") {
                                     { tareaARetroceder = tarea }
                                 } else null,
                                 onEliminar = { viewModel.eliminarTarea(tarea) }
-                                //rutaHabitad = uiState.mascotaMentora?.rutaAsset
                             )
                         }
                     }
@@ -146,7 +175,7 @@ fun KanbanScreen(
             contentColor = MaterialTheme.colorScheme.onPrimary,
             modifier = Modifier.align(Alignment.BottomEnd).padding(20.dp)
         ) {
-            Icon(Icons.Default.Add, "Nueva tarea", modifier = Modifier.size(28.dp))
+            Icon(Icons.Rounded.Add, "Nueva tarea", modifier = Modifier.size(28.dp))
         }
     }
 
@@ -163,7 +192,6 @@ fun KanbanScreen(
             onConfirmar = {
                 if (tarea.estado == "EN_PROGRESO") {
                     scope.launch {
-                        // Mostrar loading si es necesario
                         val resultado = viewModel.completarTareaYReclamar(tarea)
                         when (resultado) {
                             is ResultadoRecompensa.Exito -> {
@@ -172,7 +200,6 @@ fun KanbanScreen(
                                     monedas = resultado.recompensa.monedas,
                                     bonos = resultado.recompensa.bonosAplicados
                                 )
-                                // No llamar a cambiarEstadoTarea nuevamente porque ya se hizo en completarTareaYReclamar
                             }
                             is ResultadoRecompensa.Error -> {
                                 viewModel.setError(resultado.mensaje)
@@ -181,7 +208,8 @@ fun KanbanScreen(
                         tareaAAvanzar = null
                     }
                 } else {
-                    // Para mover de POR_HACER a EN_PROGRESO
+                    // Nota: Si cambias el estado a EN_PROGRESO desde la UI, asegúrate de que tu
+                    // KanbanViewModel.cambiarEstadoTarea() use este mismo límite dinámico para validar los bloqueos por límite.
                     viewModel.cambiarEstadoTarea(tarea, "EN_PROGRESO")
                     tareaAAvanzar = null
                 }
@@ -209,7 +237,78 @@ fun KanbanScreen(
     mostrarRecompensa?.let { recompensa ->
         DialogoRecompensa(
             recompensa = recompensa,
+            mascota = uiState.mascotaMentora,
             onCerrar = { mostrarRecompensa = null }
         )
+    }
+}
+
+/**
+ * 🛠️ COMPONENTE INTERNO DE FILTROS ACTUALIZADO
+ * Muestra dinámicamente el contador junto a su límite: (Actual/Límite)
+ */
+@Composable
+fun KanbanFilterChips(
+    filtroActivo: String,
+    onFiltroChange: (String) -> Unit,
+    conteos: Map<String, Int>,
+    limites: Map<String, Int>
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        val estados = listOf("POR_HACER", "EN_PROGRESO", "FINALIZADO")
+
+        estados.forEach { estado ->
+            val actual = conteos[estado] ?: 0
+            val limite = limites[estado]
+
+            // Si el estado tiene un límite definido, muestra "Actual/Límite", si no, solo "Actual"
+            val textoConteo = if (limite != null) "$actual/$limite" else "$actual"
+
+            val etiqueta = when (estado) {
+                "POR_HACER" -> "Por Hacer ($textoConteo)"
+                "EN_PROGRESO" -> "En Progreso ($textoConteo)"
+                "FINALIZADO" -> "Finalizado ($textoConteo)"
+                else -> ""
+            }
+
+            FilterChip(
+                selected = filtroActivo == estado,
+                onClick = { onFiltroChange(estado) },
+                label = { Text(etiqueta, fontSize = 12.sp) }
+            )
+        }
+    }
+}
+
+/**
+ * 📊 UTILIDADES DE KANBAN (Unificadas aquí para reducir archivos)
+ */
+object KanbanUtils {
+    fun formatearFecha(timestamp: Long): String {
+        val sdf = SimpleDateFormat("dd/MM", Locale.getDefault())
+        return sdf.format(Date(timestamp))
+    }
+
+    fun formatearFechaCompleta(timestamp: Long): String {
+        val sdf = SimpleDateFormat("dd 'de' MMMM", Locale("es"))
+        return sdf.format(Date(timestamp))
+    }
+
+    fun calcularDiasRestantes(fechaLimite: Long): Long {
+        val ahora = System.currentTimeMillis()
+        val diff = fechaLimite - ahora
+        return TimeUnit.MILLISECONDS.toDays(diff)
+    }
+}
+
+@Composable
+fun Int.getColorPrioridad(): Color {
+    return when (this) {
+        3 -> Color(0xFFDC2626) // Alta (Rojo)
+        2 -> Color(0xFFD97706) // Media (Ámbar)
+        else -> Color(0xFF2563EB) // Baja (Azul)
     }
 }

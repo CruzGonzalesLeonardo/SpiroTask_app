@@ -34,6 +34,22 @@ interface MascotaBaseDao {
         WHERE id_mascota_base = :id
     """)
     suspend fun obtenerHabilidadPorId(id: Int): HabilidadSimplificada?
+
+    // 🧩 NUEVO: Actualizar el progreso de piezas del rompecabezas desde la Tienda/Ruleta
+    @Query("""
+        UPDATE mascota_base 
+        SET rompecabezas_actuales = :nuevosFragmentos 
+        WHERE id_mascota_base = :id
+    """)
+    suspend fun actualizarProgresoRompecabezas(id: Int, nuevosFragmentos: Int)
+
+    /** Actualizar de forma directa el progreso de piezas del rompecabezas desde la Tienda o Ruleta */
+    @Query("""
+    UPDATE mascota_base 
+    SET rompecabezas_actuales = :nuevosFragmentos 
+    WHERE id_mascota_base = :id
+""")
+    suspend fun actualProgresoRompecabezas(id: Int, nuevosFragmentos: Int)
 }
 
 // Data class para la habilidad simplificada
@@ -43,3 +59,4 @@ data class HabilidadSimplificada(
     val habilidad_tipo: String,  // "MENTORA" o "ACTIVA"
     val habilidad_valor: Float
 )
+

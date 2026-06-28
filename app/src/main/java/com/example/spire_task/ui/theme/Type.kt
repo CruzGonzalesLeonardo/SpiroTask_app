@@ -6,21 +6,14 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
-// ============================================
-// 📝 TIPOGRAFÍA - SPIRO TASK
-// ============================================
-// Por ahora se mantiene la tipografía por defecto.
-// En futuras iteraciones se puede personalizar con fuentes
-// descargadas o fuentes del sistema más adecuadas.
-
 val Typography = Typography(
-    // Títulos grandes (ej: nombre de la app en splash)
+    // Títulos de impacto (Splash screen / Onboarding)
     displayLarge = TextStyle(
         fontFamily = FontFamily.Default,
-        fontWeight = FontWeight.Bold,
+        fontWeight = FontWeight.ExtraBold, // Más peso visual simulando el logo
         fontSize = 57.sp,
         lineHeight = 64.sp,
-        letterSpacing = (-0.25).sp
+        letterSpacing = (-0.5).sp
     ),
     displayMedium = TextStyle(
         fontFamily = FontFamily.Default,
@@ -37,7 +30,7 @@ val Typography = Typography(
         letterSpacing = 0.sp
     ),
 
-    // Encabezados (ej: "Mis Tableros", "Tienda")
+    // Encabezados de sección importantes
     headlineLarge = TextStyle(
         fontFamily = FontFamily.Default,
         fontWeight = FontWeight.Bold,
@@ -60,10 +53,10 @@ val Typography = Typography(
         letterSpacing = 0.sp
     ),
 
-    // Títulos de sección (ej: títulos de tarjetas)
+    // Títulos de Cards y elementos interactivos
     titleLarge = TextStyle(
         fontFamily = FontFamily.Default,
-        fontWeight = FontWeight.Medium,
+        fontWeight = FontWeight.SemiBold,
         fontSize = 22.sp,
         lineHeight = 28.sp,
         letterSpacing = 0.sp
@@ -83,7 +76,7 @@ val Typography = Typography(
         letterSpacing = 0.1.sp
     ),
 
-    // Cuerpo de texto (ej: descripciones, contenido)
+    // Cuerpo de texto
     bodyLarge = TextStyle(
         fontFamily = FontFamily.Default,
         fontWeight = FontWeight.Normal,
@@ -106,10 +99,10 @@ val Typography = Typography(
         letterSpacing = 0.4.sp
     ),
 
-    // Etiquetas (ej: chips, badges, botones pequeños)
+    // Elementos pequeños de UI (Chips, Buttons, Badges)
     labelLarge = TextStyle(
         fontFamily = FontFamily.Default,
-        fontWeight = FontWeight.Medium,
+        fontWeight = FontWeight.SemiBold, // Un toque más de fuerza para botones
         fontSize = 14.sp,
         lineHeight = 20.sp,
         letterSpacing = 0.1.sp

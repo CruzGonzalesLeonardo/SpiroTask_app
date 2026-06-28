@@ -42,7 +42,9 @@ data class SettingsUiState(
     val mensajeSincronizacion: String? = null,
     val mostrarDialogoRestaurar: Boolean = false,
     val googleAccountTemp: GoogleSignInAccount? = null,
-
+    // NUEVOS: Estados requeridos por la UI mejorada
+    val recordatorioDiarioActivo: Boolean = true,
+    val modoOscuroActivo: Boolean = false
 )
 
 class SettingsViewModel(
@@ -62,6 +64,7 @@ class SettingsViewModel(
         inicializarSync()
         inicializarUserSync()
         cargarDatos()
+        cargarPreferenciasLocales()
     }
 
     private fun inicializarGoogle() {
@@ -135,6 +138,33 @@ class SettingsViewModel(
         }
     }
 
+    // NUEVO: Carga los estados iniciales de los switches desde SharedPreferences
+    private fun cargarPreferenciasLocales() {
+        val prefs = SpiroTaskApplication.instance.getSharedPreferences("spiro_prefs", Context.MODE_PRIVATE)
+        _uiState.update {
+            it.copy(
+                recordatorioDiarioActivo = prefs.getBoolean("pref_daily_reminder", true),
+                modoOscuroActivo = prefs.getBoolean("pref_dark_mode", false)
+            )
+        }
+    }
+
+    // NUEVO: Modifica y persiste el estado del recordatorio diario de tareas
+    fun setRecordatorioDiario(activo: Boolean) {
+        _uiState.update { it.copy(recordatorioDiarioActivo = activo) }
+        val prefs = SpiroTaskApplication.instance.getSharedPreferences("spiro_prefs", Context.MODE_PRIVATE)
+        prefs.edit().putBoolean("pref_daily_reminder", activo).apply()
+
+        // Aquí podrías cancelar o agendar alarmas en el WorkManager si lo requieres en el futuro
+    }
+
+    // NUEVO: Modifica y persiste el estado del modo oscuro
+    fun setModoOscuro(activo: Boolean) {
+        _uiState.update { it.copy(modoOscuroActivo = activo) }
+        val prefs = SpiroTaskApplication.instance.getSharedPreferences("spiro_prefs", Context.MODE_PRIVATE)
+        prefs.edit().putBoolean("pref_dark_mode", activo).apply()
+    }
+
     fun getGoogleSignInIntent(): Intent {
         return googleSignInManager.getSignInIntent()
     }
@@ -147,14 +177,12 @@ class SettingsViewModel(
             result.onSuccess { googleAccount ->
                 val authResult = googleSignInManager.firebaseAuthWithGoogle(googleAccount)
                 authResult.onSuccess {
-                    // Verificar si existe perfil en la nube
                     val perfilExistente = userSyncService.verificarPerfilEnNube(
                         googleAccount.id ?: "",
                         googleAccount.email ?: ""
                     )
 
                     if (perfilExistente != null) {
-                        // Guardar cuenta temporal y mostrar diálogo
                         _uiState.update {
                             it.copy(
                                 googleAccountTemp = googleAccount,
@@ -207,7 +235,6 @@ class SettingsViewModel(
 
             when (resultado) {
                 is UserSyncService.SyncResult.Success -> {
-                    // Vincular cuenta después de descargar
                     vincularPerfilConGoogle(googleAccount)
                     _uiState.update {
                         it.copy(
@@ -435,7 +462,6 @@ class SettingsViewModel(
     fun eliminarTodosLosDatos() {
         viewModelScope.launch {
             try {
-                database.subtareaDao().eliminarTodas()
                 database.tareaDao().eliminarTodas()
                 database.tableroDao().eliminarTodos()
                 database.mascotaUsuarioDao().eliminarTodas()

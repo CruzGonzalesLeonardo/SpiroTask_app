@@ -17,8 +17,7 @@ import kotlinx.coroutines.launch
         MascotaBaseEntity::class,
         MascotaUsuarioEntity::class,
         TableroEntity::class,
-        TareaEntity::class,
-        SubtareaEntity::class
+        TareaEntity::class
     ],
     version = 1,
     exportSchema = false
@@ -30,8 +29,6 @@ abstract class SpiroDatabase : RoomDatabase() {
     abstract fun mascotaUsuarioDao(): MascotaUsuarioDao
     abstract fun tableroDao(): TableroDao
     abstract fun tareaDao(): TareaDao
-    abstract fun subtareaDao(): SubtareaDao
-
     companion object {
         @Volatile
         private var INSTANCE: SpiroDatabase? = null

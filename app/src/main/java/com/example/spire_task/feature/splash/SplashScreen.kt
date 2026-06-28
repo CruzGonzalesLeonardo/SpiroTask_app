@@ -11,10 +11,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -45,9 +47,7 @@ fun SplashScreen(
 
     // Animación de entrada
     LaunchedEffect(Unit) {
-        // Logo aparece inmediatamente (painterResource es instantáneo)
         logoVisible = true
-        // Texto aparece después de 400ms
         delay(200)
         textoVisible = true
     }
@@ -77,7 +77,7 @@ fun SplashScreen(
         label = "taglineAlpha"
     )
 
-    // Contenedor principal
+    // Contenedor principal - Adapta automáticamente el fondo de la paleta nueva (Claro/Oscuro)
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -92,7 +92,7 @@ fun SplashScreen(
             // ─── LOGO (carga instantánea desde drawable) ───
             Box(
                 modifier = Modifier
-                    .size(140.dp)
+                    .size(150.dp) // Un toque sutil más grande para apreciar los detalles del logo
                     .scale(logoScale)
                     .alpha(logoAlpha),
                 contentAlignment = Alignment.Center
@@ -105,35 +105,40 @@ fun SplashScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(28.dp))
 
             // ─── NOMBRE DE LA APP ───
             Text(
                 text = "SPIRO TASK",
-                style = MaterialTheme.typography.headlineLarge.copy(
-                    fontWeight = FontWeight.Bold,
+                // Aprovecha el displayMedium robustecido que agregamos a Type.kt
+                style = MaterialTheme.typography.displayMedium.copy(
                     fontSize = 36.sp,
-                    letterSpacing = 4.sp
+                    letterSpacing = 5.sp
                 ),
-                color = MaterialTheme.colorScheme.primary,
+                color = MaterialTheme.colorScheme.primary, // Violeta en claro / Violeta Neón en oscuro
                 textAlign = TextAlign.Center,
                 modifier = Modifier.alpha(titleAlpha)
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(14.dp))
 
-            // ─── LÍNEA DECORATIVA ───
+            // ─── LÍNEA DECORATIVA CON GRADIENTE (Púrpura a Cian) ───
             Box(
                 modifier = Modifier
-                    .width(60.dp)
-                    .height(2.dp)
+                    .width(70.dp)
+                    .height(3.dp)
                     .alpha(titleAlpha)
                     .background(
-                        MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                        brush = Brush.horizontalGradient(
+                            colors = listOf(
+                                MaterialTheme.colorScheme.primary,
+                                MaterialTheme.colorScheme.secondary
+                            )
+                        )
                     )
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(14.dp))
 
             // ─── TAGLINE ───
             Text(

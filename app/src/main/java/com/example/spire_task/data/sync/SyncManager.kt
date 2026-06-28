@@ -34,7 +34,6 @@ class SyncManager(
             // ✅ Usar .first() para obtener la lista del Flow
             val tableros = database.tableroDao().obtenerTodosDirecto()  // Sin .first()
             val tareas = database.tareaDao().obtenerTodasActivasDirecto()  // Sin .first()
-            val subtareas = database.subtareaDao().obtenerTodasActivasDirecto()  // Sin .first()
             val mascotas = database.mascotaUsuarioDao().obtenerTodosDirecto()  // Sin .first()
 
             val dataMap = mutableMapOf<String, Any>()
@@ -91,22 +90,6 @@ class SyncManager(
                 dataMap["tareas"] = tareasList
             }
 
-            // Subtareas
-            if (subtareas.isNotEmpty()) {
-                val subtareasList = mutableListOf<Map<String, Any>>()
-                for (subtarea in subtareas) {
-                    subtareasList.add(
-                        mapOf(
-                            "id_subtarea" to subtarea.id_subtarea,
-                            "id_tarea" to subtarea.id_tarea,
-                            "descripcion" to subtarea.descripcion,
-                            "completada" to subtarea.completada
-                        )
-                    )
-                }
-                dataMap["subtareas"] = subtareasList
-            }
-
             // Mascotas
             if (mascotas.isNotEmpty()) {
                 val mascotasList = mutableListOf<Map<String, Any>>()
@@ -130,9 +113,9 @@ class SyncManager(
 
             userRef.setValue(dataMap).await()
 
-            SyncResult.Success("✅ Datos subidos exitosamente", System.currentTimeMillis())
+            SyncResult.Success(" Datos subidos exitosamente", System.currentTimeMillis())
         } catch (e: Exception) {
-            SyncResult.Error("❌ Error al subir datos: ${e.message}")
+            SyncResult.Error(" Error al subir datos: ${e.message}")
         }
     }
 

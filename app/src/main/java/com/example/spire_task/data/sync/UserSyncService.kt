@@ -9,7 +9,6 @@ import com.example.spire_task.data.local.database.SpiroDatabase
 import com.example.spire_task.data.local.entidades.PerfilUsuarioEntity
 import com.example.spire_task.data.local.entidades.TableroEntity
 import com.example.spire_task.data.local.entidades.TareaEntity
-import com.example.spire_task.data.local.entidades.SubtareaEntity
 import com.example.spire_task.data.local.entidades.MascotaUsuarioEntity
 import kotlinx.coroutines.tasks.await
 
@@ -168,18 +167,6 @@ class UserSyncService(
                 datosActualizados++
             }
 
-            // Descargar subtareas
-            val remoteSubtareas = remoteData["subtareas"] as? List<Map<*, *>>
-            remoteSubtareas?.forEach { subtareaMap ->
-                val subtarea = SubtareaEntity(
-                    id_subtarea = (subtareaMap["id_subtarea"] as? Long)?.toInt() ?: 0,
-                    id_tarea = (subtareaMap["id_tarea"] as? Long)?.toInt() ?: 1,
-                    descripcion = subtareaMap["descripcion"] as? String ?: "",
-                    completada = subtareaMap["completada"] as? Boolean ?: false
-                )
-                database.subtareaDao().insertar(subtarea)
-                datosActualizados++
-            }
 
             // Descargar mascotas
             val remoteMascotas = remoteData["mascotas"] as? List<Map<*, *>>

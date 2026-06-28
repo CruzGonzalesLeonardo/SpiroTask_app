@@ -19,6 +19,7 @@ data class HomeUiState(
     val emojiMascota: String = "🦉",
     val rutaAssetMascota: String? = null,
     val rutaHabitadMascota: String? = null,  // ✅ NUEVO CAMPO
+    val rutaAssetTristeMascota: String? = null,
     val felicidadMascota: Int = 100,
     val estaCargando: Boolean = true,
     val tareasCompletadasHoy: Int = 0,
@@ -66,6 +67,7 @@ class HomeViewModel(
                                 nombreMascota = especie?.nombre_especie ?: "",
                                 emojiMascota = especie?.emoji ?: "🦉",
                                 rutaAssetMascota = especie?.ruta_asset_base,
+                                rutaAssetTristeMascota = especie?.ruta_asset_triste,
                                 rutaHabitadMascota = especie?.ruta_asset_habitad ,
                                 felicidadMascota = mascota.felicidad_actual// ✅ AGREGADO
                             )
@@ -77,6 +79,7 @@ class HomeViewModel(
                                 nombreMascota = "",
                                 emojiMascota = "🦉",
                                 rutaAssetMascota = null,
+                                rutaAssetTristeMascota = null,
                                 rutaHabitadMascota = null,
                                 felicidadMascota = 100// ✅ AGREGADO
                             )

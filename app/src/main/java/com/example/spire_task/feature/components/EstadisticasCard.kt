@@ -26,7 +26,6 @@ fun EstadisticasCard(
     minutosEnfocado: Int = 0,
     rachaDias: Int = 0,
     iconoTareas: ImageVector,
-    iconoEnfoque: ImageVector,
     iconoRacha: ImageVector
 ) {
     Card(
@@ -47,12 +46,6 @@ fun EstadisticasCard(
                 valor = "$tareasCompletadas/$tareasTotales",
                 etiqueta = "Tareas",
                 color = MaterialTheme.colorScheme.primary
-            )
-            EstadisticaItem(
-                icono = iconoEnfoque,
-                valor = "${minutosEnfocado}min",
-                etiqueta = "Enfoque",
-                color = MaterialTheme.colorScheme.secondary
             )
             EstadisticaItem(
                 icono = iconoRacha,

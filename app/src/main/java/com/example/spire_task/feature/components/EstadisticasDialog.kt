@@ -12,11 +12,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.spire_task.feature.kanban.GoldColor
-import com.example.spire_task.feature.kanban.KanbanDoneColor
+
 
 /**
  * Diálogo emergente para mostrar estadísticas del usuario
@@ -125,7 +126,7 @@ fun EstadisticasDialog(
                         icono = Icons.Default.CheckCircle,
                         valor = "$tareasCompletadas/$tareasTotales",
                         etiqueta = "Tareas Completadas",
-                        color = KanbanDoneColor
+                        color = Color.Blue
                     )
 
                     // Monedas
@@ -133,7 +134,7 @@ fun EstadisticasDialog(
                         icono = Icons.Default.MonetizationOn,
                         valor = "$monedas",
                         etiqueta = "Monedas",
-                        color = GoldColor
+                        color = Color.Yellow
                     )
                 }
 
@@ -167,8 +168,6 @@ fun EstadisticasDialog(
                     shape = RoundedCornerShape(12.dp),
                     colors = CardDefaults.cardColors(
                         containerColor = when {
-                            rachaDias >= 30 -> GoldColor.copy(alpha = 0.15f)
-                            rachaDias >= 7 -> KanbanDoneColor.copy(alpha = 0.15f)
                             else -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
                         }
                     )
@@ -183,7 +182,7 @@ fun EstadisticasDialog(
                         },
                         style = MaterialTheme.typography.bodySmall,
                         modifier = Modifier.padding(12.dp),
-                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                        textAlign = TextAlign.Center
                     )
                 }
             }
@@ -205,7 +204,7 @@ fun EstadisticasDialog(
 
 @Composable
 private fun EstadisticasDialogItem(
-    icono: androidx.compose.ui.graphics.vector.ImageVector,
+    icono: ImageVector,
     valor: String,
     etiqueta: String,
     color: Color

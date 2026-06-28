@@ -6,10 +6,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+//import androidx.compose.material.icons.automirrored.filled.ChevronRight
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
+import androidx.compose.material.icons.rounded.MonetizationOn
 import androidx.compose.material3.*
-import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -17,7 +18,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.spire_task.data.local.entidades.TareaEntity
 import com.example.spire_task.feature.boards.BoardsListScreen
@@ -43,9 +43,12 @@ val destinosBottomNav = listOf(
     BottomNavDestino.Tienda, BottomNavDestino.Ajustes
 )
 
-@OptIn(ExperimentalMaterial3Api::class)
+/**
+ * Contenedor principal global de Spiro Task.
+ * Maneja la barra inferior heredada y delega las vistas internas de manera limpia.
+ */
 @Composable
-fun HomeScreen(
+fun SpiroMainContainer(
     onSesionCerrada: () -> Unit = {},
     viewModel: HomeViewModel = viewModel(factory = HomeViewModelFactory())
 ) {
@@ -57,7 +60,7 @@ fun HomeScreen(
     // ─── KANBAN A PANTALLA COMPLETA ────────────────
     if (tableroAbiertoId != null) {
         key(tableroAbiertoId, kanbanKey) {
-            val viewModel: KanbanViewModel = viewModel(
+            val kViewModel: KanbanViewModel = viewModel(
                 key = "kanban_${tableroAbiertoId}_$kanbanKey",
                 factory = KanbanViewModelFactory(tableroAbiertoId!!)
             )
@@ -67,27 +70,20 @@ fun HomeScreen(
                     tableroAbiertoId = null
                     kanbanKey++
                 },
-                viewModel = viewModel
+                viewModel = kViewModel
             )
         }
         return
     }
 
     Scaffold(
-        topBar = {
-            HomeTopBar(
-                nombre = uiState.perfil?.nombre,
-                monedas = uiState.perfil?.monedas,
-                estaCargando = uiState.estaCargando
-            )
-        },
         bottomBar = {
             SpiroBottomBar(
                 destinoSeleccionado = destinoSeleccionado,
                 onDestinoSeleccionado = { destinoSeleccionado = it }
             )
         },
-        containerColor = Color.Transparent  // ✅ Transparente para ver el hábitat
+        containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
         if (uiState.estaCargando) {
             Box(
@@ -114,25 +110,30 @@ fun HomeScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun HomeTopBar(nombre: String?, monedas: Int?, estaCargando: Boolean) {
-    TopAppBar(
-        title = {
+private fun HomeTopBarInterno(nombre: String?, monedas: Int?) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column {
             Text(
-                text = if (estaCargando) "¡Hola!" else "¡Hola, ${nombre ?: ""}!",
+                text = "¡Hola, ${nombre ?: ""}!",
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
+                color = MaterialTheme.colorScheme.onBackground
             )
-        },
-        actions = {
-            if (!estaCargando && monedas != null) MonedasBadge(monedas)
-        },
-        colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.9f)
-        )
-    )
+            Text(
+                text = "Bienvenido de vuelta",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+            )
+        }
+        if (monedas != null) MonedasBadge(monedas)
+    }
 }
 
 @Composable
@@ -140,14 +141,20 @@ private fun MonedasBadge(monedas: Int) {
     Surface(
         shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.tertiaryContainer,
-        modifier = Modifier.padding(end = 8.dp)
+        modifier = Modifier.padding(end = 4.dp)
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("🪙", fontSize = 16.sp)
-            Spacer(Modifier.width(4.dp))
+            // ✅ CORREGIDO: Se reemplazó el emoji "🪙" por el icono oficial de Material
+            Icon(
+                imageVector = Icons.Rounded.MonetizationOn,
+                contentDescription = "Monedas",
+                tint = MaterialTheme.colorScheme.onTertiaryContainer,
+                modifier = Modifier.size(18.dp)
+            )
+            Spacer(Modifier.width(6.dp))
             Text(
                 "$monedas",
                 style = MaterialTheme.typography.labelLarge,
@@ -238,15 +245,23 @@ private fun ContenidoInicio(
             .padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+        Spacer(Modifier.height(4.dp))
+
+        HomeTopBarInterno(
+            nombre = uiState.perfil?.nombre,
+            monedas = uiState.perfil?.monedas
+        )
+
         MascotaHomeCard(
-            emoji = uiState.emojiMascota,
-            nombreEspecie = uiState.nombreMascota,
+            emoji = uiState.emojiMascota ?: "🐾", // Mantenido temporalmente ya que viene dinámico del backend/UI State
+            nombreEspecie = uiState.nombreMascota ?: "Mascota",
             nivel = uiState.mascotaActiva?.nivel ?: 1,
             experiencia = uiState.mascotaActiva?.experiencia ?: 0,
             felicidad = uiState.felicidadMascota,
             nombrePersonalizado = uiState.mascotaActiva?.nombre_personalizado,
+            rutaAssetTriste = uiState.rutaAssetTristeMascota,
             rutaAsset = uiState.rutaAssetMascota,
-            rutaHabitad = uiState.rutaHabitadMascota  // ✅ PASAR EL HÁBITAT
+            rutaHabitad = uiState.rutaHabitadMascota
         )
 
         Text(
@@ -262,7 +277,6 @@ private fun ContenidoInicio(
             minutosEnfocado = uiState.minutosEnfocadoHoy,
             rachaDias = uiState.rachaDias,
             iconoTareas = Icons.Default.CheckCircle,
-            iconoEnfoque = Icons.Default.Timer,
             iconoRacha = Icons.Default.LocalFireDepartment
         )
 
@@ -306,8 +320,14 @@ private fun ContenidoInicio(
                         .padding(32.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text("📋", fontSize = 48.sp)
-                    Spacer(Modifier.height(8.dp))
+                    // ✅ CORREGIDO: Se quitó "📋" y ahora usa el icono de Material
+                    Icon(
+                        imageVector = Icons.Outlined.Assignment,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                        modifier = Modifier.size(48.dp)
+                    )
+                    Spacer(Modifier.height(12.dp))
                     Text(
                         "No tienes tareas aún",
                         style = MaterialTheme.typography.titleMedium,
@@ -381,8 +401,8 @@ private fun TareaPendienteCard(tarea: TareaEntity, onClick: () -> Unit) {
                 }
             }
             Icon(
-                Icons.Default.ChevronRight,
-                null,
+                imageVector = Icons.Default.KeyboardArrowRight, // O también Icons.Default.ArrowForward
+                contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }

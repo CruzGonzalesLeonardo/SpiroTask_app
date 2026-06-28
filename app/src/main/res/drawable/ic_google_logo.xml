@@ -1,0 +1,54 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<document>
+  <record Rank="1" Company="ICBC" Country="China" SalesB="148.7" ProfitsB="42.7" AssetsB="3124.9" MarketValueB="215.6"/>
+  <record Rank="2" Company="China Construction Bank" Country="China" SalesB="121.3" ProfitsB="34.2" AssetsB="2449.5" MarketValueB="174.4"/>
+  <record Rank="3" Company="Agricultural Bank of China" Country="China" SalesB="103" ProfitsB="27" AssetsB="2405.4" MarketValueB="141.1"/>
+  <record Rank="4" Company="JPMorgan Chase" Country="United States" SalesB="105.7" ProfitsB="17.3" AssetsB="2435.3" MarketValueB="229.7"/>
+  <record Rank="5" Company="Berkshire Hathaway" Country="United States" SalesB="178.8" ProfitsB="19.5" AssetsB="493.4" MarketValueB="309.1"/>
+  <record Rank="6" Company="Exxon Mobil" Country="United States" SalesB="394" ProfitsB="32.6" AssetsB="346.8" MarketValueB="422.1"/>
+  <record Rank="7" Company="General Electric" Country="United States" SalesB="143.3" ProfitsB="14.8" AssetsB="656.6" MarketValueB="259.6"/>
+  <record Rank="8" Company="Wells Fargo" Country="United States" SalesB="88.7" ProfitsB="21.9" AssetsB="1527.3" MarketValueB="261.4"/>
+  <record Rank="9" Company="Bank of China" Country="China" SalesB="105.1" ProfitsB="25.5" AssetsB="2291.8" MarketValueB="124.2"/>
+  <record Rank="10" Company="PetroChina" Country="China" SalesB="328.5" ProfitsB="21.1" AssetsB="386.9" MarketValueB="202"/>
+  <record Rank="11" Company="Royal Dutch Shell" Country="Netherlands" SalesB="451.4" ProfitsB="16.4" AssetsB="357.5" MarketValueB="234.1"/>
+  <record Rank="12" Company="Toyota Motor" Country="Japan" SalesB="255.6" ProfitsB="18.8" AssetsB="385.5" MarketValueB="193.5"/>
+  <record Rank="13" Company="Bank of America" Country="United States" SalesB="101.5" ProfitsB="11.4" AssetsB="2102.3" MarketValueB="183"/>
+  <record Rank="14" Company="HSBC Holdings" Country="United Kingdom" SalesB="79.6" ProfitsB="16.3" AssetsB="2671.3" MarketValueB="192.6"/>
+  <record Rank="15" Company="Apple" Country="United States" SalesB="173.8" ProfitsB="37" AssetsB="225.2" MarketValueB="483.1"/>
+  <record Rank="16" Company="Citigroup" Country="United States" SalesB="94.1" ProfitsB="13.4" AssetsB="1884.3" MarketValueB="145.1"/>
+  <record Rank="17" Company="Volkswagen Group" Country="Germany" SalesB="261.5" ProfitsB="12" AssetsB="446.9" MarketValueB="119"/>
+  <record Rank="18" Company="Wal-Mart Stores" Country="United States" SalesB="476.3" ProfitsB="16" AssetsB="204.7" MarketValueB="247.9"/>
+  <record Rank="19" Company="Chevron" Country="United States" SalesB="211.8" ProfitsB="21.4" AssetsB="253.8" MarketValueB="227.2"/>
+  <record Rank="20" Company="Gazprom" Country="Russia" SalesB="164.6" ProfitsB="39" AssetsB="397.2" MarketValueB="88.8"/>
+  <record Rank="21" Company="Samsung Electronics" Country="South Korea" SalesB="208.9" ProfitsB="27.2" AssetsB="202.8" MarketValueB="186.5"/>
+  <record Rank="22" Company="AT&amp;T" Country="United States" SalesB="128.8" ProfitsB="18.2" AssetsB="277.8" MarketValueB="182.7"/>
+  <record Rank="23" Company="BNP Paribas" Country="France" SalesB="123.2" ProfitsB="6.4" AssetsB="2480.5" MarketValueB="98.6"/>
+  <record Rank="24" Company="Total" Country="France" SalesB="228" ProfitsB="11.2" AssetsB="230.6" MarketValueB="149.8"/>
+  <record Rank="25" Company="Verizon Communications" Country="United States" SalesB="120.6" ProfitsB="11.5" AssetsB="274.1" MarketValueB="197.7"/>
+  <record Rank="26" Company="BP" Country="United Kingdom" SalesB="379.2" ProfitsB="23.5" AssetsB="305.7" MarketValueB="147.4"/>
+  <record Rank="27" Company="Microsoft" Country="United States" SalesB="83.3" ProfitsB="22.8" AssetsB="153.5" MarketValueB="343.8"/>
+  <record Rank="28" Company="Allianz" Country="Germany" SalesB="131.4" ProfitsB="8" AssetsB="852.5" MarketValueB="77.2"/>
+  <record Rank="29" Company="AXA" Country="France" SalesB="138.9" ProfitsB="6" AssetsB="1018.9" MarketValueB="63.4"/>
+  <record Rank="30" Company="China Mobile" Country="Hong Kong" SalesB="102.5" ProfitsB="19.8" AssetsB="192.8" MarketValueB="184.6"/>
+  <record Rank="31" Company="Sinopec-China Petroleum" Country="China" SalesB="445.3" ProfitsB="10.9" AssetsB="228.4" MarketValueB="94.7"/>
+  <record Rank="32" Company="Petrobras" Country="Brazil" SalesB="141.5" ProfitsB="10.9" AssetsB="319.2" MarketValueB="86.8"/>
+  <record Rank="33" Company="Nestle" Country="Switzerland" SalesB="100.1" ProfitsB="10.8" AssetsB="135.4" MarketValueB="239.6"/>
+  <record Rank="34" Company="Mitsubishi UFJ Financial" Country="Japan" SalesB="48.6" ProfitsB="8.5" AssetsB="2403.1" MarketValueB="77.7"/>
+  <record Rank="35" Company="Banco Santander" Country="Spain" SalesB="52.5" ProfitsB="5.8" AssetsB="1537.3" MarketValueB="112.3"/>
+  <record Rank="36" Company="Daimler" Country="Germany" SalesB="156.6" ProfitsB="9.1" AssetsB="232.2" MarketValueB="102.9"/>
+  <record Rank="37" Company="IBM" Country="United States" SalesB="99.8" ProfitsB="16.5" AssetsB="126.2" MarketValueB="192.5"/>
+  <record Rank="38" Company="Johnson &amp; Johnson" Country="United States" SalesB="71.3" ProfitsB="13.8" AssetsB="132.7" MarketValueB="277.4"/>
+  <record Rank="39" Company="Pfizer" Country="United States" SalesB="51.6" ProfitsB="22" AssetsB="172.1" MarketValueB="203.9"/>
+  <record Rank="40" Company="GDF Suez" Country="France" SalesB="123.9" ProfitsB="1.2" AssetsB="213" MarketValueB="63.8"/>
+  <record Rank="41" Company="Statoil" Country="Norway" SalesB="103.1" ProfitsB="6.7" AssetsB="145.4" MarketValueB="94.1"/>
+  <record Rank="42" Company="Google" Country="United States" SalesB="59.7" ProfitsB="12.9" AssetsB="110.9" MarketValueB="382.5"/>
+  <record Rank="43" Company="Eni" Country="Italy" SalesB="152.7" ProfitsB="6.9" AssetsB="191.3" MarketValueB="90.9"/>
+  <record Rank="44" Company="Oracle" Country="United States" SalesB="37.9" ProfitsB="11.1" AssetsB="86.6" MarketValueB="187.6"/>
+  <record Rank="45" Company="Commonwealth Bank" Country="Australia" SalesB="41.5" ProfitsB="7.9" AssetsB="699.4" MarketValueB="114.5"/>
+  <record Rank="46" Company="BASF" Country="Germany" SalesB="98.2" ProfitsB="6.4" AssetsB="88.7" MarketValueB="102.3"/>
+  <record Rank="47" Company="Prudential" Country="United Kingdom" SalesB="89.5" ProfitsB="4.7" AssetsB="531.4" MarketValueB="61.1"/>
+  <record Rank="48" Company="Ping An Insurance Group" Country="China" SalesB="59" ProfitsB="4.6" AssetsB="552.8" MarketValueB="66.1"/>
+  <record Rank="49" Company="Societe Generale" Country="France" SalesB="102.1" ProfitsB="2.9" AssetsB="1708.4" MarketValueB="51.7"/>
+  <record Rank="50" Company="BMW Group" Country="Germany" SalesB="100.7" ProfitsB="7" AssetsB="190.7" MarketValueB="83.4"/>
+  <record Rank="51" Company="Procter &amp; Gamble" Country="United States" SalesB="84.7" ProfitsB="10.9" AssetsB="142.9" MarketValueB="218.1"/>
+</document>

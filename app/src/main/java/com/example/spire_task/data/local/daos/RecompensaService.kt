@@ -1,89 +1,124 @@
 package com.example.spire_task.data.repository
 
+import android.content.Context
 import com.example.spire_task.data.local.entidades.MascotaBaseEntity
-import com.example.spire_task.data.local.entidades.MascotaUsuarioEntity
 import com.example.spire_task.data.local.entidades.RecompensaTarea
 import com.example.spire_task.data.local.entidades.TareaEntity
+import java.text.SimpleDateFormat
+import java.util.*
 import java.util.concurrent.TimeUnit
 
-class RecompensaService {
+class RecompensaService(private val context: Context) {
 
     companion object {
-        // Valores base de recompensa
         private const val XP_BASE_POR_TAREA = 50
         private const val MONEDAS_BASE_POR_TAREA = 10
 
-        // Bonos por prioridad
         private const val BONO_PRIORIDAD_BAJA = 1.0f
         private const val BONO_PRIORIDAD_MEDIA = 1.25f
         private const val BONO_PRIORIDAD_ALTA = 1.5f
 
-        // Bonos por entrega anticipada
-        private const val BONO_ENTREGA_ANTICIPADA_3D = 1.5f  // +50% si entrega 3+ días antes
-        private const val BONO_ENTREGA_ANTICIPADA_1D = 1.25f // +25% si entrega 1 día antes
-        private const val BONO_ENTREGA_HOY = 1.5f             // +50% si vence hoy
+        private const val BONO_ENTREGA_ANTICIPADA_3D = 1.5f
+        private const val BONO_ENTREGA_ANTICIPADA_1D = 1.25f
+        private const val BONO_ENTREGA_HOY = 1.5f
+
+        // 🔒 Límite diario de reclamos
+        private const val LIMITE_DIARIO_RECOMPENSAS = 6
+        private const val PREFS_NAME = "spiro_task_rewards_prefs"
+        private const val KEY_RECOMPENSAS_HOY = "recompensas_reclamadas_hoy"
+        private const val KEY_ULTIMA_FECHA = "ultima_fecha_reclamo"
+    }
+
+    private fun verificarYRegistrarLimiteDiario(): Boolean {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val sdf = SimpleDateFormat("yyyyMMdd", Locale.getDefault())
+        val hoyString = sdf.format(Date())
+
+        val ultimaFecha = prefs.getString(KEY_ULTIMA_FECHA, "")
+        var reclamadasHoy = prefs.getInt(KEY_RECOMPENSAS_HOY, 0)
+
+        if (ultimaFecha != hoyString) {
+            reclamadasHoy = 0
+            prefs.edit().putString(KEY_ULTIMA_FECHA, hoyString).apply()
+        }
+
+        if (reclamadasHoy >= LIMITE_DIARIO_RECOMPENSAS) {
+            return false
+        }
+
+        prefs.edit().putInt(KEY_RECOMPENSAS_HOY, reclamadasHoy + 1).apply()
+        return true
+    }
+
+    fun obtenerDisponiblesHoy(): Int {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val sdf = SimpleDateFormat("yyyyMMdd", Locale.getDefault())
+        val hoyString = sdf.format(Date())
+
+        if (prefs.getString(KEY_ULTIMA_FECHA, "") != hoyString) return LIMITE_DIARIO_RECOMPENSAS
+        val reclamadas = prefs.getInt(KEY_RECOMPENSAS_HOY, 0)
+        return (LIMITE_DIARIO_RECOMPENSAS - reclamadas).coerceAtLeast(0)
     }
 
     /**
-     * Calcula la recompensa de una tarea basada en:
-     * - Prioridad de la tarea
-     * - Fecha de entrega (si aplica)
-     * - Habilidades de la mascota mentora
-     */
-    // En RecompensaService.kt - Agrega este método o modifica el existente
-
-    /**
-     * Calcula la recompensa de una tarea con porcentaje de subtareas
+     * Calcula la recompensa de una tarea e incluye el incremento de felicidad.
      */
     suspend fun calcularRecompensa(
         tarea: TareaEntity,
         habilidadMascota: MascotaBaseEntity? = null,
-        esMascotaActiva: Boolean = false,
-        porcentajeSubtareas: Float = 1.0f
+        esMascotaActiva: Boolean = false
     ): RecompensaTarea {
 
-        // 1. Calcular multiplicador por prioridad
+        val puedeReclamar = verificarYRegistrarLimiteDiario()
+
+        if (!puedeReclamar) {
+            return RecompensaTarea(
+                xpBase = 0, xpFinal = 0,
+                monedasBase = 0, monedasFinal = 0,
+                multiplicadorXp = 0f, multiplicadorMonedas = 0f,
+                bonosAplicados = listOf("🚫 LÍMITE ALCANZADO: Has reclamado tus 6 recompensas de hoy. ¡Vuelve mañana!"),
+                incrementoFelicidad = 0
+            )
+        }
+
         val multiplicadorPrioridad = when (tarea.prioridad) {
             3 -> BONO_PRIORIDAD_ALTA
             2 -> BONO_PRIORIDAD_MEDIA
             else -> BONO_PRIORIDAD_BAJA
         }
 
-        // 2. Calcular multiplicador por entrega anticipada
         val multiplicadorEntrega = calcularMultiplicadorEntrega(tarea)
 
-        // 3. Calcular multiplicador por subtareas
-        // Si todas las subtareas están completadas, multiplicador = 1.0
-        // Si no, se reduce proporcionalmente (máximo 30% de penalización)
-        val multiplicadorSubtareas = 0.7f + (porcentajeSubtareas * 0.3f)
-
-        // 4. Calcular multiplicadores base
-        val multiplicadorBase = multiplicadorPrioridad * multiplicadorEntrega * multiplicadorSubtareas
+        val multiplicadorBase = multiplicadorPrioridad * multiplicadorEntrega
         val xpBase = (XP_BASE_POR_TAREA * multiplicadorBase).toInt()
         val monedasBase = (MONEDAS_BASE_POR_TAREA * multiplicadorBase).toInt()
 
-        // 5. Aplicar habilidades de mascota
         val bonosAplicados = mutableListOf<String>()
         var multiplicadorXp = 1.0f
         var multiplicadorMonedas = 1.0f
 
-        // Bono por subtareas
-        if (porcentajeSubtareas < 1.0f && porcentajeSubtareas > 0.7f) {
-            val penalizacion = ((1 - multiplicadorSubtareas) * 100).toInt()
-            if (penalizacion > 0) {
-                bonosAplicados.add("⚠️ Subtareas incompletas: -$penalizacion%")
-            }
-        } else if (porcentajeSubtareas == 1.0f && multiplicadorSubtareas == 1.0f) {
-            bonosAplicados.add("✅ Todas las subtareas completadas: +0%")
+        // 📈 ✅ NUEVO: Determinar el incremento de felicidad por nivel de tarea
+        val incrementoFelicidad = when (tarea.prioridad) {
+            3 -> 30 // Alta
+            2 -> 20 // Media
+            else -> 10 // Baja
         }
 
-        // Bonos por prioridad
+        // Agregar desglose visual en los bonos
         when (tarea.prioridad) {
-            3 -> bonosAplicados.add("🔴 Prioridad Alta: +50%")
-            2 -> bonosAplicados.add("🟡 Prioridad Media: +25%")
+            3 -> {
+                bonosAplicados.add("🔴 Prioridad Alta: +50%")
+                bonosAplicados.add("❤️ Vínculo fortalecido: +30 Felicidad")
+            }
+            2 -> {
+                bonosAplicados.add("🟡 Prioridad Media: +25%")
+                bonosAplicados.add("❤️ Vínculo fortalecido: +20 Felicidad")
+            }
+            else -> {
+                bonosAplicados.add("❤️ Vínculo fortalecido: +10 Felicidad")
+            }
         }
 
-        // Bonos por entrega
         val diferenciaDias = tarea.fecha_limite?.let {
             calcularDiasDiferencia(it, tarea.fecha_completado ?: System.currentTimeMillis())
         }
@@ -100,12 +135,12 @@ class RecompensaService {
                     if (habilidadMascota.habilidad_nombre.contains("XP", ignoreCase = true) ||
                         habilidadMascota.habilidad_descripcion.contains("XP", ignoreCase = true)) {
                         multiplicadorXp = habilidadMascota.habilidad_valor
-                        bonosAplicados.add("✨ ${habilidadMascota.habilidad_nombre}: +${((habilidadMascota.habilidad_valor - 1) * 100).toInt()}% XP")
+                        bonosAplicados.add("⭐ ${habilidadMascota.habilidad_nombre}: +${((habilidadMascota.habilidad_valor - 1) * 100).toInt()}% XP")
                     }
                     if (habilidadMascota.habilidad_nombre.contains("monedas", ignoreCase = true) ||
                         habilidadMascota.habilidad_descripcion.contains("monedas", ignoreCase = true)) {
                         multiplicadorMonedas = habilidadMascota.habilidad_valor
-                        bonosAplicados.add("💰 ${habilidadMascota.habilidad_nombre}: +${((habilidadMascota.habilidad_valor - 1) * 100).toInt()}% monedas")
+                        bonosAplicados.add("🪙 ${habilidadMascota.habilidad_nombre}: +${((habilidadMascota.habilidad_valor - 1) * 100).toInt()}% monedas")
                     }
                 }
                 "ACTIVA" -> {
@@ -113,11 +148,11 @@ class RecompensaService {
                         when {
                             habilidadMascota.habilidad_nombre.contains("XP", ignoreCase = true) -> {
                                 multiplicadorXp = habilidadMascota.habilidad_valor
-                                bonosAplicados.add("✨ ${habilidadMascota.habilidad_nombre}: +${((habilidadMascota.habilidad_valor - 1) * 100).toInt()}% XP")
+                                bonosAplicados.add("⭐ ${habilidadMascota.habilidad_nombre}: +${((habilidadMascota.habilidad_valor - 1) * 100).toInt()}% XP")
                             }
                             habilidadMascota.habilidad_nombre.contains("monedas", ignoreCase = true) -> {
                                 multiplicadorMonedas = habilidadMascota.habilidad_valor
-                                bonosAplicados.add("💰 ${habilidadMascota.habilidad_nombre}: +${((habilidadMascota.habilidad_valor - 1) * 100).toInt()}% monedas")
+                                bonosAplicados.add("🪙 ${habilidadMascota.habilidad_nombre}: +${((habilidadMascota.habilidad_valor - 1) * 100).toInt()}% monedas")
                             }
                         }
                     }
@@ -125,18 +160,18 @@ class RecompensaService {
             }
         }
 
-        // Calcular valores finales
         val xpFinal = (xpBase * multiplicadorXp).toInt().coerceAtLeast(1)
         val monedasFinal = (monedasBase * multiplicadorMonedas).toInt().coerceAtLeast(1)
 
+        val restantes = obtenerDisponiblesHoy()
+        bonosAplicados.add("🔄 Recompensas restantes hoy: $restantes")
+
         return RecompensaTarea(
-            xpBase = xpBase,
-            xpFinal = xpFinal,
-            monedasBase = monedasBase,
-            monedasFinal = monedasFinal,
-            multiplicadorXp = multiplicadorXp,
-            multiplicadorMonedas = multiplicadorMonedas,
-            bonosAplicados = bonosAplicados
+            xpBase = xpBase, xpFinal = xpFinal,
+            monedasBase = monedasBase, monedasFinal = monedasFinal,
+            multiplicadorXp = multiplicadorXp, multiplicadorMonedas = multiplicadorMonedas,
+            bonosAplicados = bonosAplicados,
+            incrementoFelicidad = incrementoFelicidad // <-- ASIGNACIÓN
         )
     }
 
@@ -144,36 +179,25 @@ class RecompensaService {
         return TimeUnit.MILLISECONDS.toDays(fechaLimite - fechaCompletado)
     }
 
-    /**
-     * Calcula el multiplicador por entrega anticipada o a tiempo
-     */
     private fun calcularMultiplicadorEntrega(tarea: TareaEntity): Float {
         val fechaLimite = tarea.fecha_limite ?: return 1.0f
         val fechaCompletado = tarea.fecha_completado ?: return 1.0f
-
         val diferenciaDias = TimeUnit.MILLISECONDS.toDays(fechaLimite - fechaCompletado)
 
         return when {
-            diferenciaDias >= 3 -> BONO_ENTREGA_ANTICIPADA_3D  // +50% si entrega 3+ días antes
-            diferenciaDias >= 1 -> BONO_ENTREGA_ANTICIPADA_1D  // +25% si entrega 1 día antes
-            diferenciaDias == 0L -> BONO_ENTREGA_HOY          // +50% si entrega justo hoy
-            diferenciaDias < 0 -> {
-                // Tarea entregada tarde, sin bono
-                1.0f
-            }
+            diferenciaDias >= 3 -> BONO_ENTREGA_ANTICIPADA_3D
+            diferenciaDias >= 1 -> BONO_ENTREGA_ANTICIPADA_1D
+            diferenciaDias == 0L -> BONO_ENTREGA_HOY
             else -> 1.0f
         }
     }
 
-    /**
-     * Calcula el bono de racha (días consecutivos completando tareas)
-     */
     fun calcularBonoRacha(diasRacha: Int): Float {
         return when {
-            diasRacha >= 30 -> 2.0f  // +100% después de 30 días
-            diasRacha >= 14 -> 1.5f  // +50% después de 14 días
-            diasRacha >= 7 -> 1.25f  // +25% después de 7 días
-            diasRacha >= 3 -> 1.1f   // +10% después de 3 días
+            diasRacha >= 30 -> 2.0f
+            diasRacha >= 14 -> 1.5f
+            diasRacha >= 7 -> 1.25f
+            diasRacha >= 3 -> 1.1f
             else -> 1.0f
         }
     }
