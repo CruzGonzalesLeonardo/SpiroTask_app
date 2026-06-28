@@ -25,6 +25,8 @@ import com.example.spire_task.data.local.entidades.TareaEntity
 import com.example.spire_task.feature.kanban.KanbanUtils
 import com.example.spire_task.feature.kanban.MascotaCompletaKanban
 import com.example.spire_task.feature.kanban.RecompensaMostrada
+import java.util.Calendar
+import java.util.TimeZone
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,14 +42,52 @@ fun DialogoCrearTarea(
     var mostrarDatePicker by remember { mutableStateOf(false) }
 
     if (mostrarDatePicker) {
-        val datePickerState = rememberDatePickerState(initialSelectedDateMillis = fechaSeleccionadaTimestamp)
+        // 1. Bloquear fechas pasadas: Calculamos el inicio del día de hoy en UTC absoluto
+        val hoyUtcMidnight = remember {
+            val calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
+            calendar.set(Calendar.HOUR_OF_DAY, 0)
+            calendar.set(Calendar.MINUTE, 0)
+            calendar.set(Calendar.SECOND, 0)
+            calendar.set(Calendar.MILLISECOND, 0)
+            calendar.timeInMillis
+        }
+
+        val datePickerState = rememberDatePickerState(
+            initialSelectedDateMillis = fechaSeleccionadaTimestamp,
+            selectableDates = object : SelectableDates {
+                override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+                    // Bloquea los días anteriores a hoy en el calendario
+                    return utcTimeMillis >= hoyUtcMidnight
+                }
+            }
+        )
+
         DatePickerDialog(
             onDismissRequest = { mostrarDatePicker = false },
             confirmButton = {
                 TextButton(onClick = {
-                    datePickerState.selectedDateMillis?.let {
-                        fechaSeleccionadaTimestamp = it
-                        textoFecha = "Entrega: ${KanbanUtils.formatearFechaCompleta(it)}"
+                    datePickerState.selectedDateMillis?.let { utcMillis ->
+                        // 2. EXTRAER EL DÍA EXACTO SIN IMPORTAR EL PAÍS O ZONA HORARIA
+                        // Leemos la selección usando un calendario UTC puro para congelar el número del día escogido
+                        val calUtc = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
+                            timeInMillis = utcMillis
+                        }
+
+                        // Reconstruimos la estampa de tiempo en el calendario Local a mediodía (12:00 PM)
+                        // para blindar el valor contra cualquier futura resta de horas del sistema o base de datos.
+                        val calLocal = Calendar.getInstance().apply {
+                            set(Calendar.YEAR, calUtc.get(Calendar.YEAR))
+                            set(Calendar.MONTH, calUtc.get(Calendar.MONTH))
+                            set(Calendar.DAY_OF_MONTH, calUtc.get(Calendar.DAY_OF_MONTH))
+                            set(Calendar.HOUR_OF_DAY, 12) // 👈 Forzar mediodía evita que reste días al guardar
+                            set(Calendar.MINUTE, 0)
+                            set(Calendar.SECOND, 0)
+                            set(Calendar.MILLISECOND, 0)
+                        }
+
+                        val fechaCorregida = calLocal.timeInMillis
+                        fechaSeleccionadaTimestamp = fechaCorregida
+                        textoFecha = "Entrega: ${KanbanUtils.formatearFechaCompleta(fechaCorregida)}"
                     }
                     mostrarDatePicker = false
                 }) { Text("Confirmar") }
