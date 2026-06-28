@@ -134,7 +134,7 @@ class OnboardingViewModel(
                     experiencia = 0,
                     esta_activa = true,
                     fecha_obtencion = System.currentTimeMillis(),
-                    felicidad_actual = 100, // Inicia al máximo de felicidad (100)
+                    felicidad_actual = 60, // Inicia al máximo de felicidad (100)
                     ultima_interaccion = System.currentTimeMillis()
                 )
                 database.mascotaUsuarioDao().insertar(nuevaMascota)
