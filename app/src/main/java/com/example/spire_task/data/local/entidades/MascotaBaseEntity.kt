@@ -27,7 +27,7 @@ data class MascotaBaseEntity(
     val habilidad_valor: Float,             // 1.15 = +15%, 1.20 = +20%, etc.
 
     // SISTEMA DE FELICIDAD
-    val felicidad_base: Int = 100,
+    val felicidad_base: Int = 50,
     val decremento_felicidad_diario: Int = 5,
 
     // SISTEMA DE GAMIFICACIÓN POR ROMPECABEZAS

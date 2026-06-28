@@ -4,7 +4,7 @@ import com.example.spire_task.data.local.entidades.MascotaBaseEntity
 
 object DatosIniciales {
 
-    const val MONEDAS_INICIALES = 1000
+    const val MONEDAS_INICIALES = 100
 
     val mascotasBase = listOf(
         // 🦉 BÚHO DEL ENFOQUE - Habilidad MENTORA (afecta tablero)
