@@ -50,6 +50,7 @@ interface MascotaBaseDao {
     WHERE id_mascota_base = :id
 """)
     suspend fun actualProgresoRompecabezas(id: Int, nuevosFragmentos: Int)
+
 }
 
 // Data class para la habilidad simplificada

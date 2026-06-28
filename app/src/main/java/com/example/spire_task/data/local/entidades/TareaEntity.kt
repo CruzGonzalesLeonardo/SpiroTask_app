@@ -31,5 +31,6 @@ data class TareaEntity(
     val is_deleted: Boolean = false,            // Borrado lógico
     val fecha_creacion: Long = System.currentTimeMillis(),
     val fecha_modificacion: Long = System.currentTimeMillis(),
-    val fecha_completado: Long? = null          // ✅ NUEVO: timestamp cuando se completó la tarea
+    val fecha_completado: Long? = null,
+    val penalizacion_aplicada: Boolean = false// ✅ NUEVO: timestamp cuando se completó la tarea
 )

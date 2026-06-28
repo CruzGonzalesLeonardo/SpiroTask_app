@@ -109,4 +109,22 @@ interface MascotaUsuarioDao {
     @Query("SELECT * FROM mascota_usuario")
     suspend fun obtenerTodosDirecto(): List<MascotaUsuarioEntity>
 
+    @Query("""
+    SELECT * FROM mascota_usuario 
+    WHERE id_mascota_usuario IN (SELECT id_mascota_mentora FROM tablero WHERE is_deleted = 0)
+""")
+    suspend fun obtenerMascotasMentorasActivas(): List<MascotaUsuarioEntity>
+
+    @Update
+    suspend fun actualizarMascotas(mascotas: List<MascotaUsuarioEntity>)
+
+
+    @Query("""
+    UPDATE mascota_usuario 
+    SET felicidad_actual = MAX(0, felicidad_actual - :puntos)
+    WHERE id_mascota_usuario = (
+        SELECT id_mascota_mentora FROM tablero WHERE id_tablero = :idTablero LIMIT 1
+    )
+""")
+    suspend fun reducirFelicidadPorTablero(idTablero: Int, puntos: Int)
 }

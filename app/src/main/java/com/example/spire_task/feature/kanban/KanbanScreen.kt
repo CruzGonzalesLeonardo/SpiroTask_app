@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.activity.compose.BackHandler // 🚨 ASEGÚRATE DE AGREGAR ESTE IMPORT ARRIBA
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -52,7 +53,14 @@ fun KanbanScreen(
     var mostrarRecompensa by remember { mutableStateOf<RecompensaMostrada?>(null) }
 
     if (tareaSeleccionadaId != null) {
-        TaskDetailScreen(tareaId = tareaSeleccionadaId!!, onVolver = { tareaSeleccionadaId = null })
+        BackHandler {
+            tareaSeleccionadaId = null
+        }
+
+        TaskDetailScreen(
+            tareaId = tareaSeleccionadaId!!,
+            onVolver = { tareaSeleccionadaId = null }
+        )
         return
     }
 

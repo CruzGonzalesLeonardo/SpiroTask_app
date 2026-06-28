@@ -35,6 +35,7 @@ class SyncManager(
             val tableros = database.tableroDao().obtenerTodosDirecto()  // Sin .first()
             val tareas = database.tareaDao().obtenerTodasActivasDirecto()  // Sin .first()
             val mascotas = database.mascotaUsuarioDao().obtenerTodosDirecto()  // Sin .first()
+            val mascotasBase = database.mascotaBaseDao().obtenerTodasDirecto()
 
             val dataMap = mutableMapOf<String, Any>()
 
@@ -107,6 +108,20 @@ class SyncManager(
                     )
                 }
                 dataMap["mascotas"] = mascotasList
+            }
+
+            // macotabase
+            if (mascotasBase.isNotEmpty()) {
+                val mascotasBaseList = mutableListOf<Map<String, Any>>()
+                for (base in mascotasBase) {
+                    mascotasBaseList.add(
+                        mapOf(
+                            "id_mascota_base" to base.id_mascota_base,
+                            "cantidad_rompecabezas" to base.rompecabezas_actuales // O cómo se llame el campo exacto en tu entidad
+                        )
+                    )
+                }
+                dataMap["mascotas_base"] = mascotasBaseList
             }
 
             dataMap["ultima_sincronizacion"] = System.currentTimeMillis()

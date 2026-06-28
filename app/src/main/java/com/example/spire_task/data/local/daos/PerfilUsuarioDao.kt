@@ -48,4 +48,8 @@ interface PerfilUsuarioDao {
     @Query("DELETE FROM perfil_usuario WHERE id = 1")
     suspend fun eliminarPerfil()
 
+
+    @Query("UPDATE perfil_usuario SET racha_user = :racha WHERE id = 1")
+    suspend fun actualizarRacha(racha: Int)
+
 }

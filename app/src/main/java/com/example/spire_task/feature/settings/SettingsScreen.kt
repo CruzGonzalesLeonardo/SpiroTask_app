@@ -315,6 +315,7 @@ fun SettingsScreen(
         )
 
         // ─── SINCRONIZACIÓN ──────────────────────────────
+        // ─── SINCRONIZACIÓN ──────────────────────────────
         SeccionTitulo("Sincronización")
         Card(
             modifier = Modifier.fillMaxWidth(),
@@ -326,6 +327,8 @@ fun SettingsScreen(
                     icono = Icons.Rounded.CloudUpload,
                     texto = "Subir datos a la nube",
                     subtitulo = "Respaldar tu progreso actual",
+                    // Se deshabilita si no está vinculado
+                    habilitado = uiState.estaVinculadoGoogle,
                     onClick = { mostrarDialogoConfirmarSubida = true }
                 )
                 HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant, modifier = Modifier.padding(horizontal = 16.dp))
@@ -333,8 +336,44 @@ fun SettingsScreen(
                     icono = Icons.Rounded.CloudDownload,
                     texto = "Descargar datos",
                     subtitulo = "Recuperar respaldo de la nube",
+                    // Se deshabilita si no está vinculado
+                    habilitado = uiState.estaVinculadoGoogle,
                     onClick = { mostrarDialogoConfirmarDescarga = true }
                 )
+                HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant, modifier = Modifier.padding(horizontal = 16.dp))
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        Icons.Rounded.Sync,
+                        contentDescription = null,
+                        tint = if (uiState.estaVinculadoGoogle) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
+                    )
+                    Spacer(Modifier.width(16.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            text = "Sincronización automática",
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.Medium,
+                            color = if (uiState.estaVinculadoGoogle) Color.Unspecified else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                        )
+                        Text(
+                            text = "Respalda tus cambios en segundo plano al instante",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = if (uiState.estaVinculadoGoogle) 1f else 0.38f)
+                        )
+                    }
+                    Switch(
+                        // Si no está vinculado, forzamos a que visualmente esté en false
+                        checked = uiState.estaVinculadoGoogle && uiState.sincronizacionAutomatica,
+                        enabled = uiState.estaVinculadoGoogle, // Deshabilitar interacción
+                        onCheckedChange = { viewModel.setSincronizacionAutomatica(it) }
+                    )
+                }
             }
         }
 
@@ -492,22 +531,43 @@ private fun OpcionAjustesFila(
     texto: String,
     subtitulo: String,
     colorIcono: Color = MaterialTheme.colorScheme.onSurfaceVariant,
+    habilitado: Boolean = true, // <-- Nuevo parámetro por defecto
     onClick: () -> Unit
 ) {
+    val opacidad = if (habilitado) 1f else 0.38f // Opacidad estándar de Material 3 para deshabilitado
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
+            .clickable(enabled = habilitado, onClick = onClick) // <-- Controla el click
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(icono, contentDescription = null, tint = colorIcono, modifier = Modifier.size(24.dp))
+        Icon(
+            icono,
+            contentDescription = null,
+            tint = if (habilitado) colorIcono else colorIcono.copy(alpha = opacidad),
+            modifier = Modifier.size(24.dp)
+        )
         Spacer(modifier = Modifier.width(16.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text(texto, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
-            Text(subtitulo, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(
+                texto,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = opacidad)
+            )
+            Text(
+                subtitulo,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = opacidad)
+            )
         }
-        Icon(Icons.Rounded.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f))
+        Icon(
+            Icons.Rounded.ChevronRight,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = if (habilitado) 0.5f else 0.2f)
+        )
     }
 }
 

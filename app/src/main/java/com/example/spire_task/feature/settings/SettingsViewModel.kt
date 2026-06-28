@@ -44,7 +44,8 @@ data class SettingsUiState(
     val googleAccountTemp: GoogleSignInAccount? = null,
     // NUEVOS: Estados requeridos por la UI mejorada
     val recordatorioDiarioActivo: Boolean = true,
-    val modoOscuroActivo: Boolean = false
+    val modoOscuroActivo: Boolean = false,
+    val sincronizacionAutomatica: Boolean = false
 )
 
 class SettingsViewModel(
@@ -144,7 +145,8 @@ class SettingsViewModel(
         _uiState.update {
             it.copy(
                 recordatorioDiarioActivo = prefs.getBoolean("pref_daily_reminder", true),
-                modoOscuroActivo = prefs.getBoolean("pref_dark_mode", false)
+                modoOscuroActivo = prefs.getBoolean("pref_dark_mode", false),
+                sincronizacionAutomatica = prefs.getBoolean("pref_auto_sync", false)
             )
         }
     }
@@ -163,6 +165,17 @@ class SettingsViewModel(
         _uiState.update { it.copy(modoOscuroActivo = activo) }
         val prefs = SpiroTaskApplication.instance.getSharedPreferences("spiro_prefs", Context.MODE_PRIVATE)
         prefs.edit().putBoolean("pref_dark_mode", activo).apply()
+    }
+
+    fun setSincronizacionAutomatica(activo: Boolean) {
+        _uiState.update { it.copy(sincronizacionAutomatica = activo) }
+        val prefs = SpiroTaskApplication.instance.getSharedPreferences("spiro_prefs", Context.MODE_PRIVATE)
+        prefs.edit().putBoolean("pref_auto_sync", activo).apply()
+
+        if (activo) {
+            // Si lo activa, podemos lanzar una sincronización inmediata de respaldo
+            syncData()
+        }
     }
 
     fun getGoogleSignInIntent(): Intent {
@@ -347,6 +360,7 @@ class SettingsViewModel(
         viewModelScope.launch {
             try {
                 val perfilActual = database.perfilUsuarioDao().obtenerPerfilDirecto()
+                setSincronizacionAutomatica(false)
                 if (perfilActual != null && perfilActual.id_google != null) {
                     val perfilActualizado = perfilActual.copy(
                         id_google = null,

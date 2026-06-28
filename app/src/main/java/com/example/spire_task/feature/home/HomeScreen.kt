@@ -1,11 +1,14 @@
 package com.example.spire_task.feature.home
 
+import android.app.Activity
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.activity.compose.BackHandler // 🚨 NO OLVIDES EL IMPORT
 //import androidx.compose.material.icons.automirrored.filled.ChevronRight
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
@@ -16,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -52,44 +56,63 @@ fun SpiroMainContainer(
     onSesionCerrada: () -> Unit = {},
     viewModel: HomeViewModel = viewModel(factory = HomeViewModelFactory())
 ) {
+    val context = LocalContext.current
     var kanbanKey by remember { mutableIntStateOf(0) }
     val uiState by viewModel.uiState.collectAsState()
     var destinoSeleccionado by remember { mutableStateOf<BottomNavDestino>(BottomNavDestino.Inicio) }
     var tableroAbiertoId by remember { mutableStateOf<Int?>(null) }
 
-    // ─── KANBAN A PANTALLA COMPLETA ────────────────
-    if (tableroAbiertoId != null) {
-        key(tableroAbiertoId, kanbanKey) {
-            val kViewModel: KanbanViewModel = viewModel(
-                key = "kanban_${tableroAbiertoId}_$kanbanKey",
-                factory = KanbanViewModelFactory(tableroAbiertoId!!)
-            )
-            KanbanScreen(
-                tableroId = tableroAbiertoId!!,
-                onVolver = {
-                    tableroAbiertoId = null
-                    kanbanKey++
-                },
-                viewModel = kViewModel
-            )
+    // Estado para "Doble click para salir"
+    var tiempoUltimoBack by remember { mutableLongStateOf(0L) }
+
+    // 1. BACKHANDLER MAESTRO (Doble clic para salir de la app)
+    // Solo se activa si NO estamos en un tablero.
+    BackHandler(enabled = (tableroAbiertoId == null)) {
+        val ahora = System.currentTimeMillis()
+        if (ahora - tiempoUltimoBack > 2000) {
+            tiempoUltimoBack = ahora
+            Toast.makeText(context, "Presiona de nuevo para salir", Toast.LENGTH_SHORT).show()
+        } else {
+            (context as? Activity)?.finish()
         }
-        return
+    }
+
+    // 2. BACKHANDLER PARA EL KANBAN (Cierra el tablero si está abierto)
+    BackHandler(enabled = (tableroAbiertoId != null)) {
+        tableroAbiertoId = null
+        kanbanKey++
     }
 
     Scaffold(
         bottomBar = {
-            SpiroBottomBar(
-                destinoSeleccionado = destinoSeleccionado,
-                onDestinoSeleccionado = { destinoSeleccionado = it }
-            )
+            if (tableroAbiertoId == null) {
+                SpiroBottomBar(
+                    destinoSeleccionado = destinoSeleccionado,
+                    onDestinoSeleccionado = { destinoSeleccionado = it }
+                )
+            }
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
-        if (uiState.estaCargando) {
+
+        if (tableroAbiertoId != null) {
+            key(tableroAbiertoId, kanbanKey) {
+                val kViewModel: KanbanViewModel = viewModel(
+                    key = "kanban_${tableroAbiertoId}_$kanbanKey",
+                    factory = KanbanViewModelFactory(tableroAbiertoId!!)
+                )
+                KanbanScreen(
+                    tableroId = tableroAbiertoId!!,
+                    onVolver = {
+                        tableroAbiertoId = null
+                        kanbanKey++
+                    },
+                    viewModel = kViewModel
+                )
+            }
+        } else if (uiState.estaCargando) {
             Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
+                modifier = Modifier.fillMaxSize().padding(paddingValues),
                 contentAlignment = Alignment.Center
             ) {
                 CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
@@ -218,6 +241,7 @@ private fun ContenidoDestino(
         is BottomNavDestino.Inicio -> ContenidoInicio(
             uiState = uiState,
             onCambiarPestana = onCambiarPestana,
+            onTableroClick = onTableroClick, // <-- Pasamos la función aquí para abrir el tablero directo
             modifier = modifier
         )
         is BottomNavDestino.Tableros -> BoardsListScreen(
@@ -236,6 +260,7 @@ private fun ContenidoDestino(
 private fun ContenidoInicio(
     uiState: HomeUiState,
     onCambiarPestana: (BottomNavDestino) -> Unit,
+    onTableroClick: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -344,7 +369,7 @@ private fun ContenidoInicio(
             uiState.tareasPendientes.take(5).forEach { tarea ->
                 TareaPendienteCard(
                     tarea = tarea,
-                    onClick = { onCambiarPestana(BottomNavDestino.Tableros) }
+                    onClick = { onTableroClick(tarea.id_tablero) } // <-- Cambiado: Ahora manda el id_tablero al contenedor principal
                 )
             }
             if (uiState.tareasPendientes.size > 5) {

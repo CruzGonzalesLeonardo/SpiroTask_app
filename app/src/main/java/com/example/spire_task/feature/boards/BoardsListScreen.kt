@@ -1,6 +1,7 @@
 package com.example.spire_task.feature.boards
 
 import android.util.Log
+import androidx.activity.compose.BackHandler // 🚨 NO OLVIDES EL IMPORT
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable

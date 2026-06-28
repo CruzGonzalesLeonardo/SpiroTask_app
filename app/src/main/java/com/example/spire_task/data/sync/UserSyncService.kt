@@ -184,6 +184,21 @@ class UserSyncService(
                 datosActualizados++
             }
 
+            val remoteMascotasBase = remoteData["mascotas_base"] as? List<Map<*, *>>
+            remoteMascotasBase?.forEach { baseMap ->
+                val idBase = (baseMap["id_mascota_base"] as? Long)?.toInt() ?: 0
+                val rompecabezas = (baseMap["cantidad_rompecabezas"] as? Long)?.toInt() ?: 0
+
+                // 1. Usamos tu metodo existente para verificar si la especie existe en el catálogo local
+                val existeMascotaLocal = database.mascotaBaseDao().obtenerPorId(idBase)
+
+                if (existeMascotaLocal != null) {
+                    // 2. Usamos tu Query directa optimizada para actualizar solo los fragmentos
+                    database.mascotaBaseDao().actualizarProgresoRompecabezas(idBase, rompecabezas)
+                    datosActualizados++
+                }
+            }
+
             Log.d("USER_SYNC", "✅ Descarga completada! Registros: $datosActualizados")
             SyncResult.Success("✅ Datos descargados: $datosActualizados registros", System.currentTimeMillis(), datosActualizados)
         } catch (e: Exception) {

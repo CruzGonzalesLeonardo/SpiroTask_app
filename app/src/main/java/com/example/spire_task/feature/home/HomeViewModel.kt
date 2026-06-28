@@ -11,6 +11,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.Calendar
+import java.util.Date
+import java.util.concurrent.TimeUnit
 
 data class HomeUiState(
     val perfil: PerfilUsuarioEntity? = null,
@@ -39,8 +42,11 @@ class HomeViewModel(
     init {
         observarPerfil()
         observarMascotaActiva()
+        observarCambiosYActualizarRacha()
         cargarEstadisticas()
         cargarTareasPendientes()
+        verificarDescuentoDiarioMascotas()
+        observarTareasVencidas()
     }
 
     private fun observarPerfil() {
@@ -115,12 +121,14 @@ class HomeViewModel(
     private fun cargarTareasPendientes() {
         viewModelScope.launch {
             try {
-                database.tareaDao().obtenerTodasActivas().let { tareas ->
-                    val pendientes = tareas.filter {
-                        it.estado == "POR_HACER" || it.estado == "EN_PROGRESO"
-                    }.sortedBy { it.fecha_limite }
+                database.tareaDao().observarTodasLasPendientes().collect { tareas ->
+                    // Ordenamos: las que vencen antes primero. Las que no tienen fecha van al final.
+                    val pendientesOrdenadas = tareas.sortedWith(
+                        compareBy<TareaEntity> { it.fecha_limite == null }
+                            .thenBy { it.fecha_limite }
+                    )
 
-                    _uiState.update { it.copy(tareasPendientes = pendientes) }
+                    _uiState.update { it.copy(tareasPendientes = pendientesOrdenadas) }
                 }
             } catch (e: Exception) { /* ignorar */ }
         }
@@ -137,6 +145,138 @@ class HomeViewModel(
 
             _uiState.update {
                 it.copy(felicidadMascota = nuevaFelicidad)
+            }
+        }
+    }
+
+    fun calcularRachaActual(tareasCompletadas: List<TareaEntity>): Int {
+        if (tareasCompletadas.isEmpty()) return 0
+
+        // 1. Convertir los timestamps a días únicos (eliminando horas, minutos, segundos)
+        val diasConTareas = tareasCompletadas.map { tarea ->
+            val cal = Calendar.getInstance().apply { timeInMillis = tarea.fecha_completado!! }
+            // Forzamos a que apunte a las 00:00:00 del día para comparar limpiamente
+            cal.set(Calendar.HOUR_OF_DAY, 0)
+            cal.set(Calendar.MINUTE, 0)
+            cal.set(Calendar.SECOND, 0)
+            cal.set(Calendar.MILLISECOND, 0)
+            cal.timeInMillis
+        }.toSet().sortedDescending() // De hoy hacia atrás
+
+        if (diasConTareas.isEmpty()) return 0
+
+        // 2. Obtener el inicio del día de hoy y del día de ayer
+        val hoy = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }.timeInMillis
+
+        val unDiaEnMillis = TimeUnit.DAYS.toMillis(1)
+        val ayer = hoy - unDiaEnMillis
+
+        // Si no hay tareas hoy ni ayer, la racha se rompió y vuelve a 0
+        val ultimoDiaCompletado = diasConTareas.first()
+        if (ultimoDiaCompletado != hoy && ultimoDiaCompletado != ayer) {
+            return 0
+        }
+
+        // 3. Contar cuántos días consecutivos hay hacia atrás
+        var racha = 0
+        var diaEsperado = ultimoDiaCompletado
+
+        for (dia in diasConTareas) {
+            if (dia == diaEsperado) {
+                racha++
+                diaEsperado -= unDiaEnMillis // Restamos un día para buscar el anterior consecutivo
+            } else {
+                break // Hubo un salto de un día completo, se detiene el conteo
+            }
+        }
+
+        return racha
+    }
+
+    private fun observarCambiosYActualizarRacha() {
+        viewModelScope.launch {
+            database.tareaDao().observarTodasLasCompletadas().collect { tareasCompletadas ->
+                // Ejecuta el cálculo algorítmico basado en el historial de tareas finalizadas
+                val nuevaRacha = calcularRachaActual(tareasCompletadas)
+
+                // Actualiza de forma persistente en la tabla PerfilUsuario
+                database.perfilUsuarioDao().actualizarRacha(nuevaRacha)
+
+                // Refleja instantáneamente la racha calculada en el UI state de la pantalla
+                _uiState.update { estadoActual ->
+                    estadoActual.copy(rachaDias = nuevaRacha)
+                }
+            }
+        }
+    }
+
+    private fun verificarDescuentoDiarioMascotas() {
+        viewModelScope.launch {
+            try {
+                val ahora = System.currentTimeMillis()
+                val unDiaEnMillis = 24 * 60 * 60 * 1000 // 86,400,000 ms
+
+                // 1. Traer solo las mascotas asignadas a tableros no eliminados
+                val mascotasMentoras = database.mascotaUsuarioDao().obtenerMascotasMentorasActivas()
+                val mascotasAActualizar = mutableListOf<MascotaUsuarioEntity>()
+
+                for (mascota in mascotasMentoras) {
+                    val tiempoTranscurrido = ahora - mascota.ultima_interaccion
+                    val diasPasados = (tiempoTranscurrido / unDiaEnMillis).toInt()
+
+                    // Si ha pasado al menos 1 día completo (24 horas) de inactividad
+                    if (diasPasados >= 1) {
+                        val puntosDescuento = diasPasados * 10 // 10 puntos por día pasado
+                        val nuevaFelicidad = (mascota.felicidad_actual - puntosDescuento).coerceIn(0, 100)
+
+                        // Clonamos la entidad con los nuevos valores de felicidad y actualizamos su control de tiempo
+                        mascotasAActualizar.add(
+                            mascota.copy(
+                                felicidad_actual = nuevaFelicidad,
+                                ultima_interaccion = ahora // Actualizamos para que cuente desde hoy el próximo descuento
+                            )
+                        )
+                    }
+                }
+
+                // 2. Guardar en bloque todos los cambios en la base de datos si existen registros afectados
+                if (mascotasAActualizar.isNotEmpty()) {
+                    database.mascotaUsuarioDao().actualizarMascotas(mascotasAActualizar)
+                }
+            } catch (e: Exception) { /* ignorar */ }
+        }
+    }
+
+    private fun observarTareasVencidas() {
+        viewModelScope.launch {
+            // Obtenemos el tiempo actual en milisegundos
+            val ahora = System.currentTimeMillis()
+
+            // Escuchamos el Flow de Room de manera reactiva
+            database.tareaDao().observarTareasVencidasSinPenalizar(ahora).collect { tareasVencidas ->
+                for (tarea in tareasVencidas) {
+                    // Determinar el descuento según la prioridad de la tarea (Nivel)
+                    // Ajusta los números (1, 2, 3) según cómo manejes tus prioridades
+                    val puntosDescuento = when (tarea.prioridad) {
+                        3 -> 30    // Prioridad Alta / Nivel 3 -> -30%
+                        2 -> 20    // Prioridad Media / Nivel 2 -> -20%
+                        else -> 10 // Prioridad Baja / Nivel 1 -> -10%
+                    }
+
+                    // 1. Reducimos la felicidad de la mascota mentora asociada al tablero de esta tarea
+                    database.mascotaUsuarioDao().reducirFelicidadPorTablero(
+                        idTablero = tarea.id_tablero,
+                        puntos = puntosDescuento
+                    )
+
+                    // 2. Marcamos la tarea como penalizada para que el Flow no la vuelva a traer
+                    database.tareaDao().marcarPenalizacionAplicada(tarea.id_tarea)
+                }
             }
         }
     }

@@ -20,7 +20,8 @@ data class PerfilUsuarioEntity(
     val monedas: Int = DatosIniciales.MONEDAS_INICIALES,                // Saldo de monedas del juego
     val nivel_perfil: Int = 1,// Nivel de cuenta
     val google_email: String? = null,
-    val experiencia_perfil: Int = 0,        // XP acumulada del perfil
+    val experiencia_perfil: Int = 0,
+    val racha_user: Int = 0,// XP acumulada del perfil
     val fecha_creacion: Long = System.currentTimeMillis(),
     val ultima_sincronizacion: Long? = null // Timestamp de último backup a nube
 )

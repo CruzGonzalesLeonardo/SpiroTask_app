@@ -103,4 +103,30 @@ interface TareaDao {
     @Query("SELECT * FROM tarea WHERE is_deleted = 0")
     suspend fun obtenerTodasActivasDirecto(): List<TareaEntity>
 
+    @Query("""
+    SELECT * FROM tarea 
+    WHERE is_deleted = 0 AND (estado = 'POR_HACER' OR estado = 'EN_PROGRESO')
+""")
+    fun observarTodasLasPendientes(): Flow<List<TareaEntity>>
+
+    @Query("""
+    SELECT * FROM tarea 
+    WHERE is_deleted = 0 AND estado = 'FINALIZADO' AND fecha_completado IS NOT NULL
+    ORDER BY fecha_completado DESC
+""")
+    fun observarTodasLasCompletadas(): Flow<List<TareaEntity>>
+
+
+    @Query("""
+    SELECT * FROM tarea 
+    WHERE is_deleted = 0 
+      AND estado != 'FINALIZADO' 
+      AND fecha_limite < :timestampActual 
+      AND penalizacion_aplicada = 0
+""")
+    fun observarTareasVencidasSinPenalizar(timestampActual: Long = System.currentTimeMillis()): Flow<List<TareaEntity>>
+
+    @Query("UPDATE tarea SET penalizacion_aplicada = 1 WHERE id_tarea = :idTarea")
+    suspend fun marcarPenalizacionAplicada(idTarea: Int)
+
 }
